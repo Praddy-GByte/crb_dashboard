@@ -1,0 +1,20 @@
+Package: colorado-river-dashboard
+Title: Colorado River Basin Dashboard
+Version: 1.0.0
+Author: Praddy
+Maintainer: Your Name <pradeepika.kaushik@gmail.com>
+Description: A Shiny dashboard for analyzing Colorado River Basin data.
+License: MIT
+Imports:
+    shiny,
+    shinydashboard,
+    ggplot2,
+    plotly,
+    raster,
+    sf,
+    dplyr,
+    tidyr,
+    lubridate,
+    DT,
+    ncdf4,
+    leaflet 

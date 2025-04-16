@@ -1,0 +1,40 @@
+# R specific files
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+.Rapp.history
+
+# Shiny app files
+rsconnect/
+*.log
+
+# Data files
+*.nc
+*.tif
+*.shp
+*.shx
+*.dbf
+*.prj
+*.rds
+*.csv
+
+# Output directories
+images/
+cache/
+data/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Python virtual environment
+.venv/
+__pycache__/
+*.pyc
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo 

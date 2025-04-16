@@ -1,0 +1,20 @@
+Data Analysis Summary
+===================
+
+VIC Data Statistics:
+
+GRACE Data Statistics:
+mean: -0.81
+std: 0.90
+min: -2.70
+max: 0.96
+median: -0.78
+
+SMAP Data Statistics:
+
+SNOTEL Data Statistics:
+mean: 149.67
+std: 166.35
+min: 0.00
+max: 669.10
+median: 86.78
