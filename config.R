@@ -1,7 +1,10 @@
 # Configuration file for the dashboard
 
+# Create a new environment for configuration
+config_env <- new.env()
+
 # Data paths
-config <- list(
+config_env$config <- list(
   # Directory paths
   data_dir = "data",
   processed_dir = "data/processed",
@@ -48,25 +51,27 @@ config <- list(
 
 # Function to get configuration value
 get_config <- function(key) {
-  if (is.null(config[[key]])) {
-    stop(paste("Configuration key not found:", key))
+  if (key %in% names(config_env$config)) {
+    return(config_env$config[[key]])
+  } else {
+    warning(paste("Configuration key", key, "not found"))
+    return(NULL)
   }
-  return(config[[key]])
 }
 
 # Function to set configuration value
 set_config <- function(key, value) {
-  config[[key]] <<- value
+  config_env$config[[key]] <- value
 }
 
 # Function to load configuration from file
 load_config <- function(config_file = "config.yaml") {
   if (file.exists(config_file)) {
-    config <<- yaml::read_yaml(config_file)
+    config_env$config <- yaml::read_yaml(config_file)
   }
 }
 
 # Function to save configuration to file
 save_config <- function(config_file = "config.yaml") {
-  yaml::write_yaml(config, config_file)
+  yaml::write_yaml(config_env$config, config_file)
 } 

@@ -1,40 +1,60 @@
 # R specific files
-.Rproj.user
 .Rhistory
 .RData
 .Ruserdata
-.Rapp.history
+.Rproj.user/
+*.Rproj
+
+# Temporary files
+*.log
+*.aux
+*.out
+*.toc
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.html
+*.html_files/
+
+# Data files
+*.csv
+*.xlsx
+*.xls
+*.rds
+*.rda
+*.RData
+
+# Environment files
+.Renviron
+.env
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS specific files
+.DS_Store
+Thumbs.db
 
 # Shiny app files
 rsconnect/
-*.log
-
-# Data files
 *.nc
 *.tif
 *.shp
 *.shx
 *.dbf
 *.prj
-*.rds
-*.csv
 
 # Output directories
 images/
 cache/
 data/
 
-# OS specific files
-.DS_Store
-Thumbs.db
-
 # Python virtual environment
 .venv/
 __pycache__/
-*.pyc
-
-# IDE specific files
-.idea/
-.vscode/
-*.swp
-*.swo 
+*.pyc 

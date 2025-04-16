@@ -1,97 +1,69 @@
-# Load required packages
+# Load required libraries
 library(shiny)
 library(shinydashboard)
-library(ggplot2)
 library(plotly)
-library(raster)
-library(sf)
 library(dplyr)
 library(tidyr)
 library(lubridate)
-library(DT)
 library(ncdf4)
+library(raster)
+library(viridis)
+library(sf)
 library(leaflet)
+library(DT)
 library(markdown)
+library(shinycssloaders)
+library(shinythemes)
+library(shinyjs)
+library(shinyWidgets)
+library(zoo)
 
-# Source helper functions
+# Source server components
 source("server_components.R")
-source("helpers.R")
 
-# Add resource path for images
-addResourcePath("images", "/Users/praddy5/Desktop/Dashboard/images")
-
-# Main server function
+# Define server
 server <- function(input, output, session) {
-  # ... existing code ...
+  # Call server components
+  source("server_components.R", local = TRUE)
   
-  # VIC Model visualizations
-  output$vic_time_series <- renderImage({
-    list(src = "vic_analysis/time_series.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
+  # Initialize reactive values
+  values <- reactiveValues(
+    vic_data = NULL,
+    snotel_data = NULL,
+    analysis_results = NULL
+  )
   
-  output$vic_monthly_stats <- renderImage({
-    list(src = "vic_analysis/monthly_stats.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
+  # Call individual server components
+  prism_server(input, output, session)
+  vic_server(input, output, session, values)
+  smap_server(input, output, session)
+  grace_server(input, output, session)
+  analysis_server(input, output, session, values)
+  analysis_output_server(input, output, session)
   
-  output$precipitation_map <- renderImage({
-    list(src = "vic_analysis/precipitation_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$snow_water_map <- renderImage({
-    list(src = "vic_analysis/snow_water_equivalent_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$runoff_map <- renderImage({
-    list(src = "vic_analysis/runoff_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$baseflow_map <- renderImage({
-    list(src = "vic_analysis/baseflow_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$evapotranspiration_map <- renderImage({
-    list(src = "vic_analysis/evapotranspiration_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$soil_moisture_1_map <- renderImage({
-    list(src = "vic_analysis/soil_moisture_layer_1_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$soil_moisture_2_map <- renderImage({
-    list(src = "vic_analysis/soil_moisture_layer_2_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
-  
-  output$soil_moisture_3_map <- renderImage({
-    list(src = "vic_analysis/soil_moisture_layer_3_map.png",
-         contentType = "image/png",
-         width = "100%",
-         height = "400px")
-  }, deleteFile = FALSE)
+  # Handle analysis tab
+  observeEvent(input$run_analysis, {
+    showModal(modalDialog("Running analysis...", footer = NULL))
+    tryCatch({
+      # Get the selected analysis type
+      analysis_type <- input$analysis_type
+      
+      # Create analysis plot based on selected type
+      analysis_plot <- switch(analysis_type,
+                            "Trend Analysis" = create_trend_plot(values$vic_data, values$snotel_data),
+                            "Correlation Analysis" = create_correlation_plot(values$vic_data, values$snotel_data),
+                            "Anomaly Analysis" = create_anomaly_plot(values$vic_data, values$snotel_data))
+      
+      # Store the results
+      values$analysis_results <- analysis_plot
+      
+      # Render the analysis plot
+      output$analysis_plot <- renderPlotly({ analysis_plot })
+      
+      removeModal()
+    }, error = function(e) {
+      removeModal()
+      showNotification(paste("Error running analysis:", e$message), type = "error")
+    })
+  })
 } 

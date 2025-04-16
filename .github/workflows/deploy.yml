@@ -1,4 +1,4 @@
-name: Deploy to shinyapps.io
+name: Deploy to GitHub Pages
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
       - uses: actions/checkout@v2
       
@@ -15,15 +16,17 @@ jobs:
         uses: r-lib/actions/setup-r@v1
         with:
           r-version: '4.2.0'
-      
-      - name: Install dependencies
+          
+      - name: Install required packages
         run: |
-          R -e "install.packages(c('shiny', 'rsconnect', 'ncdf4', 'ggplot2', 'dplyr', 'lubridate', 'sf', 'raster', 'terra', 'gridExtra', 'scales', 'viridis', 'plotly'))"
-      
-      - name: Deploy to shinyapps.io
-        env:
-          SHINYAPPS_NAME: ${{ secrets.SHINYAPPS_NAME }}
-          SHINYAPPS_TOKEN: ${{ secrets.SHINYAPPS_TOKEN }}
-          SHINYAPPS_SECRET: ${{ secrets.SHINYAPPS_SECRET }}
+          R -e 'install.packages(c("shiny", "shinylive", "httpuv", "ncdf4", "ggplot2", "dplyr", "lubridate", "sf", "raster", "terra", "gridExtra", "scales", "viridis", "plotly"), repos="https://cloud.r-project.org")'
+          
+      - name: Build static app
         run: |
-          Rscript deploy.R 
+          R -e 'shinylive::export("app.R", "docs")'
+          
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs 

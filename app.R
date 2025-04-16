@@ -14,7 +14,7 @@ library(leaflet)
 library(markdown)
 
 # Add resource path for images
-addResourcePath("images", "/Users/praddy5/Desktop/Dashboard/images")
+addResourcePath("images", "images")
 
 # Function to check for processed data
 check_processed_data <- function(data_type, year = NULL) {
@@ -566,8 +566,8 @@ ui <- dashboardPage(
       menuItem("VIC Model", tabName = "vic", icon = icon("water")),
       menuItem("SMAP", tabName = "smap", icon = icon("satellite")),
       menuItem("GRACE", tabName = "grace", icon = icon("weight")),
-      menuItem("Precipitation Analysis", tabName = "precipitation", icon = icon("cloud-rain")),
-      menuItem("Snow Water Equivalent", tabName = "swe", icon = icon("snowflake")),
+      menuItem("Precipitation Analysis", tabName = "precip_anomalies", icon = icon("cloud-rain")),
+      menuItem("Snow Water Equivalent", tabName = "snow_water", icon = icon("snowflake")),
       menuItem("Soil Moisture", tabName = "soil", icon = icon("seedling")),
       menuItem("SWE Anomalies", tabName = "swe_anomalies", icon = icon("snowflake")),
       menuItem("Help", tabName = "help", icon = icon("question-circle"))
@@ -1406,25 +1406,25 @@ ui <- dashboardPage(
                                ),
                                fluidRow(
                                  box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("prec_spatial", height = "400px")),
+                                     imageOutput("prec_spatial_plot", height = "400px")),
                                  box(title = "Time Series", width = 6,
-                                     plotlyOutput("prec_timeseries", height = "400px"))
+                                     imageOutput("prec_timeseries_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("prec_monthly", height = "400px"))
+                                     imageOutput("prec_monthly_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Annual Trends", width = 6,
-                                     plotlyOutput("prec_annual_trend", height = "300px")),
+                                     imageOutput("prec_annual_trend_plot", height = "300px")),
                                  box(title = "Seasonal Patterns", width = 6,
-                                     plotlyOutput("prec_seasonal", height = "300px"))
+                                     imageOutput("prec_seasonal_plot", height = "300px"))
                                ),
                                fluidRow(
                                  box(title = "Extreme Events Analysis", width = 6,
-                                     plotlyOutput("prec_extremes", height = "300px")),
+                                     imageOutput("prec_extremes_plot", height = "300px")),
                                  box(title = "Spatial Correlation", width = 6,
-                                     plotlyOutput("prec_correlation", height = "300px"))
+                                     imageOutput("prec_correlation_plot", height = "300px"))
                                )
                       ),
                       tabPanel("Evapotranspiration",
@@ -1440,25 +1440,25 @@ ui <- dashboardPage(
                                ),
                                fluidRow(
                                  box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("evap_spatial", height = "400px")),
+                                     imageOutput("evap_spatial_plot", height = "400px")),
                                  box(title = "Time Series", width = 6,
-                                     plotlyOutput("evap_timeseries", height = "400px"))
+                                     imageOutput("evap_timeseries_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("evap_monthly", height = "400px"))
+                                     imageOutput("evap_monthly_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Annual Trends", width = 6,
-                                     plotlyOutput("evap_annual_trend", height = "300px")),
+                                     imageOutput("evap_annual_trend_plot", height = "300px")),
                                  box(title = "Seasonal Patterns", width = 6,
-                                     plotlyOutput("evap_seasonal", height = "300px"))
+                                     imageOutput("evap_seasonal_plot", height = "300px"))
                                ),
                                fluidRow(
                                  box(title = "Water Balance Analysis", width = 6,
-                                     plotlyOutput("evap_water_balance", height = "300px")),
+                                     imageOutput("evap_water_balance_plot", height = "300px")),
                                  box(title = "Land Cover Impact", width = 6,
-                                     plotlyOutput("evap_land_cover", height = "300px"))
+                                     imageOutput("evap_land_cover_plot", height = "300px"))
                                )
                       ),
                       tabPanel("Runoff",
@@ -1474,25 +1474,25 @@ ui <- dashboardPage(
                                ),
                                fluidRow(
                                  box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("runoff_spatial", height = "400px")),
+                                     imageOutput("runoff_spatial_plot", height = "400px")),
                                  box(title = "Time Series", width = 6,
-                                     plotlyOutput("runoff_timeseries", height = "400px"))
+                                     imageOutput("runoff_timeseries_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("runoff_monthly", height = "400px"))
+                                     imageOutput("runoff_monthly_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Annual Trends", width = 6,
-                                     plotlyOutput("runoff_annual_trend", height = "300px")),
+                                     imageOutput("runoff_annual_trend_plot", height = "300px")),
                                  box(title = "Flow Duration Curve", width = 6,
-                                     plotlyOutput("runoff_fdc", height = "300px"))
+                                     imageOutput("runoff_fdc_plot", height = "300px"))
                                ),
                                fluidRow(
                                  box(title = "Watershed Response", width = 6,
-                                     plotlyOutput("runoff_response", height = "300px")),
+                                     imageOutput("runoff_response_plot", height = "300px")),
                                  box(title = "Baseflow Separation", width = 6,
-                                     plotlyOutput("runoff_baseflow", height = "300px"))
+                                     imageOutput("runoff_baseflow_plot", height = "300px"))
                                )
                       ),
                       tabPanel("Soil Moisture",
@@ -1508,25 +1508,25 @@ ui <- dashboardPage(
                                ),
                                fluidRow(
                                  box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("soil_moisture_spatial", height = "400px")),
+                                     imageOutput("soil_moisture_spatial_plot", height = "400px")),
                                  box(title = "Time Series", width = 6,
-                                     plotlyOutput("soil_moisture_timeseries", height = "400px"))
+                                     imageOutput("soil_moisture_timeseries_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("soil_moisture_monthly", height = "400px"))
+                                     imageOutput("soil_moisture_monthly_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Soil Layer Analysis", width = 6,
-                                     plotlyOutput("soil_layers", height = "300px")),
+                                     imageOutput("soil_layers_plot", height = "300px")),
                                  box(title = "Depth Profile", width = 6,
-                                     plotlyOutput("soil_depth", height = "300px"))
+                                     imageOutput("soil_depth_plot", height = "300px"))
                                ),
                                fluidRow(
                                  box(title = "Drought Analysis", width = 6,
-                                     plotlyOutput("soil_drought", height = "300px")),
+                                     imageOutput("soil_drought_plot", height = "300px")),
                                  box(title = "Vegetation Impact", width = 6,
-                                     plotlyOutput("soil_vegetation", height = "300px"))
+                                     imageOutput("soil_vegetation_plot", height = "300px"))
                                )
                       ),
                       tabPanel("Snow Water",
@@ -1542,19 +1542,19 @@ ui <- dashboardPage(
                                ),
                                fluidRow(
                                  box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("swe_spatial", height = "400px")),
+                                     imageOutput("swe_spatial_plot", height = "400px")),
                                  box(title = "Time Series", width = 6,
-                                     plotlyOutput("swe_timeseries", height = "400px"))
+                                     imageOutput("swe_timeseries_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("swe_monthly", height = "400px"))
+                                     imageOutput("swe_monthly_plot", height = "400px"))
                                ),
                                fluidRow(
                                  box(title = "Snow Accumulation/Melt", width = 6,
-                                     plotlyOutput("swe_accumulation", height = "300px")),
+                                     imageOutput("swe_accumulation_plot", height = "300px")),
                                  box(title = "Elevation Analysis", width = 6,
-                                     plotlyOutput("swe_elevation", height = "300px"))
+                                     imageOutput("swe_elevation_plot", height = "300px"))
                                ),
                                fluidRow(
                                  box(title = "Snow Cover Duration", width = 6,
@@ -2683,16 +2683,57 @@ server <- function(input, output, session) {
   
   # Load GRACE data
   grace_data <- reactive({
+    # Check if cached data exists
+    cache_file <- "data/grace_processed/grace_cache.rds"
+    if (file.exists(cache_file)) {
+      return(readRDS(cache_file))
+    }
+    
     tryCatch({
       nc <- load_grace_data()
       on.exit(nc_close(nc))
       
-      # Extract GRACE data
-      tws <- ncvar_get(nc, "lwe_thickness")
-      uncertainty <- ncvar_get(nc, "uncertainty")
-      dates <- as.Date(ncvar_get(nc, "time"), origin = "2002-01-01")
+      # Get dimensions first
+      time <- ncvar_get(nc, "time")
+      dates <- as.Date(time, origin = "2002-01-01")
       
-      return(list(tws = tws, uncertainty = uncertainty, dates = dates))
+      # Calculate spatial means directly while reading
+      n_times <- length(time)
+      tws_means <- numeric(n_times)
+      uncertainty_means <- numeric(n_times)
+      
+      # Process data in chunks
+      chunk_size <- 12  # Process one year at a time
+      n_chunks <- ceiling(n_times / chunk_size)
+      
+      for(i in 1:n_chunks) {
+        start_idx <- (i-1) * chunk_size + 1
+        end_idx <- min(i * chunk_size, n_times)
+        
+        # Read chunk of data
+        tws_chunk <- ncvar_get(nc, "lwe_thickness", 
+                              start = c(1, 1, start_idx), 
+                              count = c(-1, -1, end_idx - start_idx + 1))
+        uncertainty_chunk <- ncvar_get(nc, "uncertainty",
+                                     start = c(1, 1, start_idx),
+                                     count = c(-1, -1, end_idx - start_idx + 1))
+        
+        # Calculate means for the chunk
+        tws_means[start_idx:end_idx] <- apply(tws_chunk, 3, mean, na.rm = TRUE)
+        uncertainty_means[start_idx:end_idx] <- apply(uncertainty_chunk, 3, mean, na.rm = TRUE)
+      }
+      
+      # Create result data frame
+      result <- list(
+        dates = dates,
+        tws_means = tws_means,
+        uncertainty_means = uncertainty_means
+      )
+      
+      # Cache the results
+      saveRDS(result, cache_file)
+      
+      return(result)
     }, error = function(e) {
       showNotification(paste("Error loading GRACE data:", e$message), type = "error")
       return(NULL)
@@ -2747,13 +2788,10 @@ server <- function(input, output, session) {
     # Get the selected year
     selected_year <- input$grace_year
     
-    # Calculate spatial mean for each time step
-    uncertainty_means <- apply(data$uncertainty, 3, mean, na.rm = TRUE)
-    
     # Create time series data frame
     ts_df <- data.frame(
       Date = data$dates,
-      Uncertainty = uncertainty_means,
+      Uncertainty = data$uncertainty_means,
       Year = format(data$dates, "%Y")
     )
     
@@ -2811,13 +2849,10 @@ server <- function(input, output, session) {
     # Get the selected year
     selected_year <- input$grace_year
     
-    # Calculate spatial mean for each time step
-    tws_means <- apply(data$tws, 3, mean, na.rm = TRUE)
-    
     # Create time series data frame
     ts_df <- data.frame(
       Date = data$dates,
-      TWS = tws_means,
+      TWS = data$tws_means,
       Year = format(data$dates, "%Y")
     )
     
@@ -2830,21 +2865,19 @@ server <- function(input, output, session) {
       group_by(Month) %>%
       summarise(Climatology = mean(TWS, na.rm = TRUE))
     
-    # Calculate anomalies (soil moisture variations)
+    # Calculate anomalies
     ts_df <- ts_df %>%
       mutate(Month = format(Date, "%B")) %>%
       left_join(monthly_clim, by = "Month") %>%
-      mutate(Soil_Moisture = TWS - Climatology)
+      mutate(Anomaly = TWS - Climatology)
     
-    # Create soil moisture profile plot
     plot_ly(ts_df) %>%
-      add_trace(x = ~Date, y = ~Soil_Moisture, type = 'scatter', mode = 'lines',
-                name = 'Soil Moisture', line = list(color = 'green')) %>%
-      add_hline(y = 0, line = list(dash = "dash"), name = "Climatology") %>%
+      add_trace(x = ~Date, y = ~Anomaly, type = 'scatter', mode = 'lines',
+                name = 'TWS Anomaly', line = list(color = 'blue')) %>%
       layout(
-        title = paste("Soil Moisture Profile -", selected_year),
+        title = paste("TWS Anomaly -", selected_year),
         xaxis = list(title = "Date"),
-        yaxis = list(title = "Soil Moisture Anomaly (cm)"),
+        yaxis = list(title = "TWS Anomaly (cm)"),
         showlegend = TRUE
       )
   })
@@ -6249,6 +6282,79 @@ server <- function(input, output, session) {
       layout(title = "Water Resource Impact",
              xaxis = list(title = "Date"),
              yaxis = list(title = "Impact Score"))
+  })
+
+  # Load pre-processed analysis results
+  analysis_results <- reactive({
+    if (file.exists("data/analysis_cache/analysis_results.rds")) {
+      readRDS("data/analysis_cache/analysis_results.rds")
+    } else {
+      NULL
+    }
+  })
+
+  # Precipitation Analysis Tab
+  output$precip_anomaly_spatial <- renderPlotly({
+    req(analysis_results())
+    plot_ly(
+      x = seq_along(dim(analysis_results()$precipitation$spatial)[1]),
+      y = seq_along(dim(analysis_results()$precipitation$spatial)[2]),
+      z = analysis_results()$precipitation$spatial,
+      type = "heatmap",
+      colorscale = "Viridis"
+    ) %>%
+      layout(
+        title = "Spatial Distribution of Precipitation",
+        xaxis = list(title = "Longitude"),
+        yaxis = list(title = "Latitude")
+      )
+  })
+
+  output$precip_anomaly_timeseries <- renderPlotly({
+    req(analysis_results())
+    plot_ly(
+      x = seq_along(analysis_results()$precipitation$timeseries),
+      y = analysis_results()$precipitation$timeseries,
+      type = "scatter",
+      mode = "lines"
+    ) %>%
+      layout(
+        title = "Precipitation Time Series",
+        xaxis = list(title = "Time"),
+        yaxis = list(title = "Precipitation (mm)")
+      )
+  })
+
+  # Snow Water Equivalent Tab
+  output$swe_spatial <- renderPlotly({
+    req(analysis_results())
+    plot_ly(
+      x = seq_along(dim(analysis_results()$swe$spatial)[1]),
+      y = seq_along(dim(analysis_results()$swe$spatial)[2]),
+      z = analysis_results()$swe$spatial,
+      type = "heatmap",
+      colorscale = "Viridis"
+    ) %>%
+      layout(
+        title = "Spatial Distribution of SWE",
+        xaxis = list(title = "Longitude"),
+        yaxis = list(title = "Latitude")
+      )
+  })
+
+  output$swe_timeseries <- renderPlotly({
+    req(analysis_results())
+    plot_ly(
+      x = seq_along(analysis_results()$swe$timeseries),
+      y = analysis_results()$swe$timeseries,
+      type = "scatter",
+      mode = "lines"
+    ) %>%
+      layout(
+        title = "SWE Time Series",
+        xaxis = list(title = "Time"),
+        yaxis = list(title = "SWE (mm)")
+      )
   })
 }
 
