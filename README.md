@@ -1,17 +1,28 @@
-# Dashboard Project
+# Hydrological Dashboard
 
-A Shiny-based dashboard application for data visualization and analysis.
+Welcome to the Hydrological Dashboard! This interactive dashboard provides tools for analyzing and visualizing hydrological data.
+
+## Features
+
+- **Data Visualization**: Interactive plots and charts for hydrological data analysis
+- **Data Analysis**: Comprehensive data analysis tools and tables
+- **Interactive Maps**: Geographic visualization of hydrological data
+
+## Getting Started
+
+Use the sidebar menu to navigate between different sections of the dashboard:
+- Dashboard: Overview and welcome information
+- Data Visualization: Interactive plots and charts
+- Data Analysis: Data tables and analysis tools
+- About: Information about this dashboard
+
+## Data Sources
+
+This dashboard integrates data from various hydrological sources to provide comprehensive analysis capabilities.
 
 ## Description
 
 This project is a comprehensive dashboard built using R Shiny that provides interactive visualizations and analysis tools for various data sources.
-
-## Features
-
-- Interactive data visualization
-- Time series analysis
-- Spatial mapping capabilities
-- Comprehensive data analysis tools
 
 ## Installation
 

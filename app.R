@@ -14,7 +14,7 @@ library(leaflet)
 library(markdown)
 
 # Add resource path for images
-addResourcePath("images", "images")
+addResourcePath("images", "/Users/praddy5/Desktop/Dashboard/images")
 
 # Function to check for processed data
 check_processed_data <- function(data_type, year = NULL) {
@@ -566,11 +566,19 @@ ui <- dashboardPage(
       menuItem("VIC Model", tabName = "vic", icon = icon("water")),
       menuItem("SMAP", tabName = "smap", icon = icon("satellite")),
       menuItem("GRACE", tabName = "grace", icon = icon("weight")),
-      menuItem("Precipitation Analysis", tabName = "precip_anomalies", icon = icon("cloud-rain")),
-      menuItem("Snow Water Equivalent", tabName = "snow_water", icon = icon("snowflake")),
+      menuItem("Precipitation Analysis", tabName = "precipitation", icon = icon("cloud-rain")),
+      menuItem("Snow Water Equivalent", tabName = "swe", icon = icon("snowflake")),
       menuItem("Soil Moisture", tabName = "soil", icon = icon("seedling")),
       menuItem("SWE Anomalies", tabName = "swe_anomalies", icon = icon("snowflake")),
-      menuItem("Help", tabName = "help", icon = icon("question-circle"))
+      menuItem("Help", tabName = "help", icon = icon("question-circle")),
+      menuItem("Static Outputs", tabName = "static_outputs", icon = icon("image"),
+               menuSubItem("VIC Model", tabName = "static_vic"),
+               menuSubItem("SMAP", tabName = "static_smap"),
+               menuSubItem("GRACE", tabName = "static_grace"),
+               menuSubItem("PRISM", tabName = "static_prism"),
+               menuSubItem("SNOTEL", tabName = "static_snotel"),
+               menuSubItem("Combined Analysis", tabName = "static_combined")
+      )
     )
   ),
   
@@ -1368,234 +1376,365 @@ ui <- dashboardPage(
       # VIC Model Tab
       tabItem(tabName = "vic",
               fluidRow(
-                div(class = "variable-info",
-                    h4("VIC Model Output Analysis"),
-                    p("Variable Infiltration Capacity (VIC) model outputs for the Colorado River Basin."),
-                    p("Spatial resolution: 4km, Temporal resolution: Daily")
-                )
+                box(title = "VIC Model Analysis", width = 12,
+                  div(class = "variable-info",
+                      h4("VIC Model Output Analysis"),
+                      p("Variable Infiltration Capacity (VIC) model outputs for the Colorado River Basin."),
+                      p("Spatial resolution: 4km, Temporal resolution: Daily")
+                  )
+                ),
+                fluidRow(
+                  column(width = 4,
+                         selectInput("vic_variable", "Select Variable:",
+                                   choices = c(
+                                     "OUT_PREC" = "Precipitation (mm/day)",
+                                     "OUT_RAINF" = "Rainfall (mm/day)",
+                                     "OUT_EVAP" = "Evapotranspiration (mm/day)",
+                                     "OUT_RUNOFF" = "Surface Runoff (mm/day)",
+                                     "OUT_BASEFLOW" = "Baseflow (mm/day)",
+                                     "OUT_SWE" = "Snow Water Equivalent (mm)",
+                                     "OUT_SOIL_MOIST" = "Soil Moisture (mm)",
+                                     "OUT_AIR_TEMP" = "Air Temperature (°C)",
+                                     "OUT_SURF_TEMP" = "Surface Temperature (°C)",
+                                     "OUT_SOIL_TEMP" = "Soil Temperature (°C)",
+                                     "OUT_SNOW_SURF_TEMP" = "Snow Surface Temperature (°C)",
+                                     "OUT_SNOW_PACK_TEMP" = "Snow Pack Temperature (°C)",
+                                     "OUT_LATENT" = "Latent Heat Flux (W/m²)"
+                                   ),
+                                   selected = "OUT_PREC")
+                  ),
+                  column(width = 4,
+                         sliderInput("vic_year_slider", "Select Year", 
+                                   min = 1982, max = 2024, value = 2024, step = 1)
+                  ),
+                  column(width = 4,
+                         sliderInput("vic_day_slider", "Select Day", 
+                                   min = 1, max = 365, value = 1, step = 1)
+                  )
+                ),
+                actionButton("vic_update", "Update Analysis", 
+                            icon = icon("refresh"),
+                            class = "btn-primary")
               ),
+          
               fluidRow(
-                box(width = 12, title = "Temporal Controls",
-                    fluidRow(
-                      column(width = 6,
-                             sliderInput("year_slider", "Select Year:",
-                                        min = 1980, max = 2020, value = 2020,
-                                        step = 1, sep = "")
+                box(title = "Spatial Distribution", width = 6,
+                    plotlyOutput("vic_spatial_map", height = "500px")
+                ),
+                box(title = "Time Series", width = 6,
+                    tabsetPanel(
+                      tabPanel("Current Year",
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_PREC'",
+                          img(src = "images/vic_precipitation_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_precipitation_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RAINF'",
+                          img(src = "images/vic_rainfall_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_rainfall_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_EVAP'",
+                          img(src = "images/vic_evapotranspiration_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_evapotranspiration_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RUNOFF'",
+                          img(src = "images/vic_runoff_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_runoff_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
+                          img(src = "images/vic_baseflow_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_baseflow_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SWE'",
+                          img(src = "images/vic_swe_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_swe_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
+                          img(src = "images/vic_soil_moisture_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_moisture_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
+                          img(src = "images/vic_air_temp_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_air_temp_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
+                          img(src = "images/vic_surface_temp_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_surface_temp_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
+                          img(src = "images/vic_soil_temp_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_temp_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
+                          img(src = "images/vic_snow_surface_temp_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_surface_temp_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
+                          img(src = "images/vic_snow_pack_temp_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_pack_temp_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_LATENT'",
+                          img(src = "images/vic_latent_heat_timeseries.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_latent_heat_static.png", width = "100%", height = "auto")
+                          )
+                        )
                       ),
-                      column(width = 6,
-                             sliderInput("day_slider", "Select Day of Year:",
-                                        min = 1, max = 365, value = 1,
-                                        step = 1)
+                      tabPanel("Historical Trend",
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_PREC'",
+                          img(src = "images/vic_precipitation_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_precipitation_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RAINF'",
+                          img(src = "images/vic_rainfall_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_rainfall_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_EVAP'",
+                          img(src = "images/vic_evapotranspiration_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_evapotranspiration_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RUNOFF'",
+                          img(src = "images/vic_runoff_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_runoff_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
+                          img(src = "images/vic_baseflow_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_baseflow_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SWE'",
+                          img(src = "images/vic_swe_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_swe_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
+                          img(src = "images/vic_soil_moisture_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_moisture_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
+                          img(src = "images/vic_air_temp_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_air_temp_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
+                          img(src = "images/vic_surface_temp_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_surface_temp_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
+                          img(src = "images/vic_soil_temp_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_temp_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
+                          img(src = "images/vic_snow_surface_temp_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_surface_temp_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
+                          img(src = "images/vic_snow_pack_temp_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_pack_temp_trend_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_LATENT'",
+                          img(src = "images/vic_latent_heat_trend.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_latent_heat_trend_static.png", width = "100%", height = "auto")
+                          )
+                        )
+                      ),
+                      tabPanel("Seasonal Pattern",
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_PREC'",
+                          img(src = "images/vic_precipitation_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_precipitation_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RAINF'",
+                          img(src = "images/vic_rainfall_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_rainfall_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_EVAP'",
+                          img(src = "images/vic_evapotranspiration_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_evapotranspiration_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_RUNOFF'",
+                          img(src = "images/vic_runoff_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_runoff_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
+                          img(src = "images/vic_baseflow_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_baseflow_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SWE'",
+                          img(src = "images/vic_swe_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_swe_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
+                          img(src = "images/vic_soil_moisture_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_moisture_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
+                          img(src = "images/vic_air_temp_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_air_temp_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
+                          img(src = "images/vic_surface_temp_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_surface_temp_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
+                          img(src = "images/vic_soil_temp_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_soil_temp_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
+                          img(src = "images/vic_snow_surface_temp_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_surface_temp_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
+                          img(src = "images/vic_snow_pack_temp_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_snow_pack_temp_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        ),
+                        conditionalPanel(
+                          condition = "input.vic_variable == 'OUT_LATENT'",
+                          img(src = "images/vic_latent_heat_seasonal.png", width = "100%", height = "auto"),
+                          div(style = "margin-top: 20px;",
+                              img(src = "images/vic_latent_heat_seasonal_static.png", width = "100%", height = "auto")
+                          )
+                        )
                       )
                     )
                 )
               ),
               fluidRow(
-                box(width = 12, title = "Variable Analysis",
-                    tabsetPanel(
-                      tabPanel("Precipitation",
-                               fluidRow(
-                                 box(width = 12, title = "Precipitation Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("prec_mean", width = 3),
-                                       valueBoxOutput("prec_max", width = 3),
-                                       valueBoxOutput("prec_min", width = 3),
-                                       valueBoxOutput("prec_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     imageOutput("prec_spatial_plot", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     imageOutput("prec_timeseries_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     imageOutput("prec_monthly_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Annual Trends", width = 6,
-                                     imageOutput("prec_annual_trend_plot", height = "300px")),
-                                 box(title = "Seasonal Patterns", width = 6,
-                                     imageOutput("prec_seasonal_plot", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Extreme Events Analysis", width = 6,
-                                     imageOutput("prec_extremes_plot", height = "300px")),
-                                 box(title = "Spatial Correlation", width = 6,
-                                     imageOutput("prec_correlation_plot", height = "300px"))
-                               )
+                box(title = "Variable Statistics", width = 12,
+                    fluidRow(
+                      column(width = 3,
+                             infoBox("Annual Mean", 
+                                    textOutput("vic_annual_mean"),
+                                    icon = icon("calculator"),
+                                    color = "blue",
+                                    width = NULL)
                       ),
-                      tabPanel("Evapotranspiration",
-                               fluidRow(
-                                 box(width = 12, title = "Evapotranspiration Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("evap_mean", width = 3),
-                                       valueBoxOutput("evap_max", width = 3),
-                                       valueBoxOutput("evap_min", width = 3),
-                                       valueBoxOutput("evap_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     imageOutput("evap_spatial_plot", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     imageOutput("evap_timeseries_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     imageOutput("evap_monthly_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Annual Trends", width = 6,
-                                     imageOutput("evap_annual_trend_plot", height = "300px")),
-                                 box(title = "Seasonal Patterns", width = 6,
-                                     imageOutput("evap_seasonal_plot", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Water Balance Analysis", width = 6,
-                                     imageOutput("evap_water_balance_plot", height = "300px")),
-                                 box(title = "Land Cover Impact", width = 6,
-                                     imageOutput("evap_land_cover_plot", height = "300px"))
-                               )
+                      column(width = 3,
+                             infoBox("Annual Max", 
+                                    textOutput("vic_annual_max"),
+                                    icon = icon("arrow-up"),
+                                    color = "red",
+                                    width = NULL)
                       ),
-                      tabPanel("Runoff",
-                               fluidRow(
-                                 box(width = 12, title = "Runoff Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("runoff_mean", width = 3),
-                                       valueBoxOutput("runoff_max", width = 3),
-                                       valueBoxOutput("runoff_min", width = 3),
-                                       valueBoxOutput("runoff_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     imageOutput("runoff_spatial_plot", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     imageOutput("runoff_timeseries_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     imageOutput("runoff_monthly_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Annual Trends", width = 6,
-                                     imageOutput("runoff_annual_trend_plot", height = "300px")),
-                                 box(title = "Flow Duration Curve", width = 6,
-                                     imageOutput("runoff_fdc_plot", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Watershed Response", width = 6,
-                                     imageOutput("runoff_response_plot", height = "300px")),
-                                 box(title = "Baseflow Separation", width = 6,
-                                     imageOutput("runoff_baseflow_plot", height = "300px"))
-                               )
+                      column(width = 3,
+                             infoBox("Annual Min", 
+                                    textOutput("vic_annual_min"),
+                                    icon = icon("arrow-down"),
+                                    color = "green",
+                                    width = NULL)
                       ),
-                      tabPanel("Soil Moisture",
-                               fluidRow(
-                                 box(width = 12, title = "Soil Moisture Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("soil_mean", width = 3),
-                                       valueBoxOutput("soil_max", width = 3),
-                                       valueBoxOutput("soil_min", width = 3),
-                                       valueBoxOutput("soil_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     imageOutput("soil_moisture_spatial_plot", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     imageOutput("soil_moisture_timeseries_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     imageOutput("soil_moisture_monthly_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Soil Layer Analysis", width = 6,
-                                     imageOutput("soil_layers_plot", height = "300px")),
-                                 box(title = "Depth Profile", width = 6,
-                                     imageOutput("soil_depth_plot", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Drought Analysis", width = 6,
-                                     imageOutput("soil_drought_plot", height = "300px")),
-                                 box(title = "Vegetation Impact", width = 6,
-                                     imageOutput("soil_vegetation_plot", height = "300px"))
-                               )
-                      ),
-                      tabPanel("Snow Water",
-                               fluidRow(
-                                 box(width = 12, title = "Snow Water Equivalent Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("swe_mean", width = 3),
-                                       valueBoxOutput("swe_max", width = 3),
-                                       valueBoxOutput("swe_min", width = 3),
-                                       valueBoxOutput("swe_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     imageOutput("swe_spatial_plot", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     imageOutput("swe_timeseries_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     imageOutput("swe_monthly_plot", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Snow Accumulation/Melt", width = 6,
-                                     imageOutput("swe_accumulation_plot", height = "300px")),
-                                 box(title = "Elevation Analysis", width = 6,
-                                     imageOutput("swe_elevation_plot", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Snow Cover Duration", width = 6,
-                                     plotlyOutput("swe_duration", height = "300px")),
-                                 box(title = "Temperature Impact", width = 6,
-                                     plotlyOutput("swe_temperature", height = "300px"))
-                               )
-                      ),
-                      tabPanel("Temperature",
-                               fluidRow(
-                                 box(width = 12, title = "Temperature Statistics",
-                                     fluidRow(
-                                       valueBoxOutput("temp_mean", width = 3),
-                                       valueBoxOutput("temp_max", width = 3),
-                                       valueBoxOutput("temp_min", width = 3),
-                                       valueBoxOutput("temp_std", width = 3)
-                                     )
-                                 )
-                               ),
-                               fluidRow(
-                                 box(title = "Spatial Distribution", width = 6,
-                                     plotlyOutput("temp_spatial", height = "400px")),
-                                 box(title = "Time Series", width = 6,
-                                     plotlyOutput("temp_timeseries", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Monthly Statistics", width = 12,
-                                     plotlyOutput("temp_monthly", height = "400px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Annual Trends", width = 6,
-                                     plotlyOutput("temp_annual_trend", height = "300px")),
-                                 box(title = "Diurnal Variation", width = 6,
-                                     plotlyOutput("temp_diurnal", height = "300px"))
-                               ),
-                               fluidRow(
-                                 box(title = "Elevation Gradient", width = 6,
-                                     plotlyOutput("temp_elevation", height = "300px")),
-                                 box(title = "Climate Change Impact", width = 6,
-                                     plotlyOutput("temp_climate_change", height = "300px"))
-                               )
+                      column(width = 3,
+                             infoBox("Annual Trend", 
+                                    textOutput("vic_annual_trend"),
+                                    icon = icon("chart-line"),
+                                    color = "yellow",
+                                    width = NULL)
                       )
                     )
                 )
@@ -1607,421 +1746,384 @@ ui <- dashboardPage(
               fluidRow(
                 div(class = "variable-info",
                     h4("SMAP Soil Moisture Analysis"),
-                    p("Soil Moisture Active Passive (SMAP) satellite data analysis."),
-                    p("Spatial resolution: 9km, Temporal resolution: Daily")
+                    p("Surface and root zone soil moisture data from NASA's Soil Moisture Active Passive (SMAP) mission."),
+                    p("Daily measurements at 9km resolution."),
+                    p("Critical for drought monitoring and water resource management.")
                 )
               ),
               fluidRow(
-                box(width = 12, title = "Analysis Controls",
-                    fluidRow(
-                      column(width = 4,
-                             selectInput("smap_depth_select", "Select Depth:",
-                                        choices = c("Surface", "Root Zone"),
-                                        selected = "Surface")
+                column(width = 12,
+                  infoBox("Surface SM", "0.25 m³/m³", 
+                         "Source: SMAP L3 - 2024", 
+                         icon = icon("tint"), color = "blue", width = 3),
+                  infoBox("Root Zone SM", "0.35 m³/m³", 
+                         "Source: SMAP L4 - 2024", 
+                         icon = icon("tint"), color = "green", width = 3),
+                  infoBox("Data Resolution", "9km", 
+                         "Source: SMAP - 2024", 
+                         icon = icon("ruler"), color = "light-blue", width = 3),
+                  infoBox("Update Frequency", "Daily", 
+                         "Source: SMAP Mission", 
+                         icon = icon("clock"), color = "yellow", width = 3)
+                )
+              ),
+              fluidRow(
+                box(width = 12, title = "SMAP Soil Moisture Analysis",
+                    tabsetPanel(
+                      tabPanel("Surface Soil Moisture",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Surface Soil Moisture Trend",
+                                    img(src = "images/smap_surface_trend.png", width = "100%", height = "auto"),
+                                    p("Surface soil moisture trends from SMAP data.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Surface Time Series",
+                                    img(src = "images/analysis_results/smap_surface_time_series.png", width = "100%", height = "auto"),
+                                    p("Temporal analysis of surface soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Surface Monthly Averages",
+                                    img(src = "images/analysis_results/smap_surface_monthly_avg.png", width = "100%", height = "auto"),
+                                    p("Monthly averages of surface soil moisture.")
+                                )
+                             )
+                           )
                       ),
-                      column(width = 4,
-                             selectInput("smap_aggregation", "Select Time Aggregation:",
-                                        choices = c("Daily", "Weekly", "Monthly", "Seasonal"),
-                                        selected = "Daily")
+                      tabPanel("Root Zone Soil Moisture",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Root Zone Soil Moisture Trend",
+                                    img(src = "images/smap_rootzone_trend.png", width = "100%", height = "auto"),
+                                    p("Root zone soil moisture trends from SMAP data.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Root Zone Time Series",
+                                    img(src = "images/analysis_results/smap_rootzone_time_series.png", width = "100%", height = "auto"),
+                                    p("Temporal analysis of root zone soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Root Zone Monthly Averages",
+                                    img(src = "images/analysis_results/smap_rootzone_monthly_avg.png", width = "100%", height = "auto"),
+                                    p("Monthly averages of root zone soil moisture.")
+                                )
+                             )
+                           )
                       ),
-                      column(width = 4,
-                             selectInput("smap_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Anomaly", "Seasonal", "Extreme"),
-                                        selected = "Trend")
+                      tabPanel("Combined Analysis",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "SMAP Time Series Analysis",
+                                    img(src = "images/smap_time_series.png", width = "100%", height = "auto"),
+                                    p("Combined analysis of surface and root zone soil moisture.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Correlation Analysis",
+                                    img(src = "images/analysis_results/correlation_soil_moisture.png", width = "100%", height = "auto"),
+                                    p("Correlation between surface and root zone soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Trend Analysis",
+                                    img(src = "images/analysis_results/trend_soil_moisture.png", width = "100%", height = "auto"),
+                                    p("Long-term trends in soil moisture.")
+                                )
+                             )
+                           )
                       )
                     )
                 )
-              ),
-              fluidRow(
-                box(width = 12, title = "SMAP Statistics",
-                    fluidRow(
-                      valueBoxOutput("smap_mean_box", width = 3),
-                      valueBoxOutput("smap_max_box", width = 3),
-                      valueBoxOutput("smap_min_box", width = 3),
-                      valueBoxOutput("smap_std_box", width = 3)
-                    )
-                )
-              ),
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("smap_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("smap_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Statistics", width = 12,
-                    plotlyOutput("smap_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Depth Profile Analysis", width = 6,
-                    plotlyOutput("smap_depth", height = "300px")),
-                box(title = "Land Cover Impact", width = 6,
-                    plotlyOutput("smap_land_cover", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Drought Analysis", width = 6,
-                    plotlyOutput("smap_drought", height = "300px")),
-                box(title = "Vegetation Response", width = 6,
-                    plotlyOutput("smap_vegetation", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Climate Impact", width = 6,
-                    plotlyOutput("smap_climate", height = "300px")),
-                box(title = "Human Impact", width = 6,
-                    plotlyOutput("smap_human", height = "300px"))
               )
       ),
-
+      
       # GRACE Data Tab
       tabItem(tabName = "grace",
+              h2("GRACE Data Analysis - Colorado River Basin"),
               fluidRow(
-                div(class = "variable-info",
-                    h4("GRACE Terrestrial Water Storage Analysis"),
-                    p("Gravity Recovery and Climate Experiment (GRACE) satellite data analysis."),
-                    p("Spatial resolution: 300km, Temporal resolution: Monthly")
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Analysis Controls",
+                box(width = 12, title = "GRACE Data Overview", solidHeader = TRUE,
                     fluidRow(
-                      column(width = 4,
-                             selectInput("grace_component", "Select Component:",
-                                        choices = c("Total Storage", "Groundwater", "Surface Water", "Soil Moisture"),
-                                        selected = "Total Storage")
-                      ),
-                      column(width = 4,
-                             selectInput("grace_aggregation", "Select Time Aggregation:",
-                                        choices = c("Monthly", "Seasonal", "Annual"),
-                                        selected = "Monthly")
-                      ),
-                      column(width = 4,
-                             selectInput("grace_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Anomaly", "Seasonal", "Extreme"),
-                                        selected = "Trend")
-                      )
+                      infoBox("TWS Change", "-15 cm", "GRACE/GRACE-FO Mission", 
+                              icon = icon("balance-scale"), color = "blue", width = 3,
+                              subtitle = "Source: GRACE/GRACE-FO Mission - 2024"),
+                      infoBox("Data Resolution", "300 km", "GRACE/GRACE-FO", 
+                              icon = icon("ruler"), color = "green", width = 3,
+                              subtitle = "Source: NASA JPL - 2024"),
+                      infoBox("Data Coverage", "2002-2024", "Historical Period", 
+                              icon = icon("calendar"), color = "light-blue", width = 3,
+                              subtitle = "Source: GRACE/GRACE-FO Mission - 2024"),
+                      infoBox("Update Frequency", "Monthly", "Data Refresh", 
+                              icon = icon("clock"), color = "purple", width = 3,
+                              subtitle = "Source: NASA JPL - 2024")
                     )
                 )
               ),
-              fluidRow(
-                box(width = 12, title = "GRACE Statistics",
-                    fluidRow(
-                      valueBoxOutput("grace_mean", width = 3),
-                      valueBoxOutput("grace_max", width = 3),
-                      valueBoxOutput("grace_min", width = 3),
-                      valueBoxOutput("grace_std", width = 3)
+              box(width = 12, title = "GRACE Analysis", solidHeader = TRUE,
+                    tabsetPanel(
+                    tabPanel("Time Series",
+                               fluidRow(
+                               infoBox("Time Period", "2002-2024", "Data Coverage", 
+                                      icon = icon("calendar"), color = "blue", width = 3),
+                               infoBox("Resolution", "Monthly", "Temporal Scale", 
+                                      icon = icon("clock"), color = "green", width = 3),
+                               infoBox("Units", "cm", "TWS Anomalies", 
+                                      icon = icon("ruler"), color = "light-blue", width = 3),
+                               infoBox("Data Source", "GRACE/GRACE-FO", "Mission", 
+                                      icon = icon("satellite"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/grace_time_series.png", width = "100%", height = "auto"),
+                             p("Monthly time series of GRACE Terrestrial Water Storage (TWS) anomalies for the Colorado River Basin.")
+                    ),
+                    tabPanel("Trend Analysis",
+                               fluidRow(
+                               infoBox("Analysis Period", "2002-2024", "Long-term Trends", 
+                                      icon = icon("chart-line"), color = "blue", width = 3),
+                               infoBox("Trend Type", "Linear", "Analysis Method", 
+                                      icon = icon("calculator"), color = "green", width = 3),
+                               infoBox("Confidence", "95%", "Statistical Significance", 
+                                      icon = icon("chart-bar"), color = "light-blue", width = 3),
+                               infoBox("Units", "cm/year", "Trend Rate", 
+                                      icon = icon("ruler"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/grace_trend.png", width = "100%", height = "auto"),
+                             p("Long-term trends in GRACE TWS anomalies showing the overall water storage changes in the basin.")
+                    ),
+                    tabPanel("Water Storage",
+                               fluidRow(
+                               infoBox("Storage Type", "Total Water", "TWS Components", 
+                                      icon = icon("water"), color = "blue", width = 3),
+                               infoBox("Spatial Scale", "Basin-wide", "Coverage", 
+                                      icon = icon("globe"), color = "green", width = 3),
+                               infoBox("Temporal Scale", "Monthly", "Resolution", 
+                                      icon = icon("clock"), color = "light-blue", width = 3),
+                               infoBox("Units", "cm", "Water Equivalent", 
+                                      icon = icon("ruler"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/water_storage.png", width = "100%", height = "auto"),
+                             p("Analysis of total water storage changes in the Colorado River Basin.")
+                    ),
+                    tabPanel("Combined Analysis",
+                               fluidRow(
+                               infoBox("Variables", "Multiple", "Hydrological Components", 
+                                      icon = icon("layer-group"), color = "blue", width = 3),
+                               infoBox("Time Period", "2002-2024", "Analysis Period", 
+                                      icon = icon("calendar"), color = "green", width = 3),
+                               infoBox("Scale", "Basin-wide", "Spatial Coverage", 
+                                      icon = icon("globe"), color = "light-blue", width = 3),
+                               infoBox("Method", "Correlation", "Analysis Type", 
+                                      icon = icon("chart-line"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/combined_trends.png", width = "100%", height = "auto"),
+                             p("Comparison of GRACE TWS with other hydrological variables.")
+                    ),
+                    tabPanel("Normalized Trends",
+                               fluidRow(
+                               infoBox("Normalization", "Z-score", "Method", 
+                                      icon = icon("calculator"), color = "blue", width = 3),
+                               infoBox("Period", "2002-2024", "Analysis Window", 
+                                      icon = icon("calendar"), color = "green", width = 3),
+                               infoBox("Variables", "Multiple", "Components", 
+                                      icon = icon("layer-group"), color = "light-blue", width = 3),
+                               infoBox("Scale", "Standardized", "Units", 
+                                      icon = icon("ruler"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/combined_trends_normalized.png", width = "100%", height = "auto"),
+                             p("Normalized comparison of GRACE TWS trends with other hydrological variables.")
                     )
                 )
-              ),
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("grace_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("grace_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Statistics", width = 12,
-                    plotlyOutput("grace_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Water Storage Components", width = 6,
-                    plotlyOutput("grace_components", height = "300px")),
-                box(title = "Groundwater Analysis", width = 6,
-                    plotlyOutput("grace_groundwater", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Climate Impact", width = 6,
-                    plotlyOutput("grace_climate", height = "300px")),
-                box(title = "Human Impact", width = 6,
-                    plotlyOutput("grace_human", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Drought Analysis", width = 6,
-                    plotlyOutput("grace_drought", height = "300px")),
-                box(title = "Water Management Impact", width = 6,
-                    plotlyOutput("grace_management", height = "300px"))
               )
       ),
-
-      # Precipitation Anomalies Tab
-      tabItem(tabName = "precip_anomalies",
-              fluidRow(
-                div(class = "variable-info",
-                    h4("Precipitation Anomalies Analysis"),
-                    p("Analysis of precipitation deviations from long-term averages."),
-                    p("Spatial resolution: 4km, Temporal resolution: Daily")
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Analysis Controls",
-                    fluidRow(
-                      column(width = 4,
-                             selectInput("precip_anomaly_type", "Select Anomaly Type:",
-                                        choices = c("Standardized", "Percent", "Absolute"),
-                                        selected = "Standardized")
-                      ),
-                      column(width = 4,
-                             selectInput("precip_aggregation", "Select Time Aggregation:",
-                                        choices = c("Daily", "Weekly", "Monthly", "Seasonal"),
-                                        selected = "Monthly")
-                      ),
-                      column(width = 4,
-                             selectInput("precip_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Frequency", "Intensity", "Duration"),
-                                        selected = "Trend")
-                      )
-                    )
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Anomaly Statistics",
-                    fluidRow(
-                      valueBoxOutput("precip_anomaly_mean", width = 3),
-                      valueBoxOutput("precip_anomaly_max", width = 3),
-                      valueBoxOutput("precip_anomaly_min", width = 3),
-                      valueBoxOutput("precip_anomaly_std", width = 3)
-                    )
-                )
-              ),
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("precip_anomaly_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("precip_anomaly_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Anomalies", width = 12,
-                    plotlyOutput("precip_anomaly_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Extreme Events", width = 6,
-                    plotlyOutput("precip_extremes", height = "300px")),
-                box(title = "Seasonal Patterns", width = 6,
-                    plotlyOutput("precip_seasonal", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Climate Indices", width = 6,
-                    plotlyOutput("precip_climate", height = "300px")),
-                box(title = "Impact Analysis", width = 6,
-                    plotlyOutput("precip_impact", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Drought Analysis", width = 6,
-                    plotlyOutput("precip_drought", height = "300px")),
-                box(title = "Flood Risk", width = 6,
-                    plotlyOutput("precip_flood", height = "300px"))
-              )
-      ),
-
-      # SWE Anomalies Tab
-      tabItem(tabName = "swe_anomalies",
-              fluidRow(
-                div(class = "variable-info",
-                    h4("Snow Water Equivalent Anomalies Analysis"),
-                    p("Analysis of snow water equivalent deviations from long-term averages."),
-                    p("Spatial resolution: 4km, Temporal resolution: Daily")
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Analysis Controls",
-                    fluidRow(
-                      column(width = 4,
-                             selectInput("swe_anomaly_type", "Select Anomaly Type:",
-                                        choices = c("Standardized", "Percent", "Absolute"),
-                                        selected = "Standardized")
-                      ),
-                      column(width = 4,
-                             selectInput("swe_anomaly_aggregation", "Select Time Aggregation:",
-                                        choices = c("Daily", "Weekly", "Monthly", "Seasonal"),
-                                        selected = "Monthly")
-                      ),
-                      column(width = 4,
-                             selectInput("swe_anomaly_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Frequency", "Intensity", "Duration"),
-                                        selected = "Trend")
-                      )
-                    )
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Anomaly Statistics",
-                    fluidRow(
-                      valueBoxOutput("swe_anomaly_mean", width = 3),
-                      valueBoxOutput("swe_anomaly_max", width = 3),
-                      valueBoxOutput("swe_anomaly_min", width = 3),
-                      valueBoxOutput("swe_anomaly_std", width = 3)
-                    )
-                )
-              ),
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("swe_anomaly_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("swe_anomaly_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Anomalies", width = 12,
-                    plotlyOutput("swe_anomaly_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Elevation Analysis", width = 6,
-                    plotlyOutput("swe_elevation", height = "300px")),
-                box(title = "Temperature Impact", width = 6,
-                    plotlyOutput("swe_temperature", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Snow Cover Duration", width = 6,
-                    plotlyOutput("swe_duration", height = "300px")),
-                box(title = "Melt Analysis", width = 6,
-                    plotlyOutput("swe_melt", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Climate Impact", width = 6,
-                    plotlyOutput("swe_climate", height = "300px")),
-                box(title = "Water Resource Impact", width = 6,
-                    plotlyOutput("swe_water", height = "300px"))
-              )
-      ),
-
+      
       # Snow Water Equivalent Tab
-      tabItem(tabName = "snow_water",
+      tabItem(tabName = "swe",
               fluidRow(
                 div(class = "variable-info",
                     h4("Snow Water Equivalent Analysis"),
-                    p("Analysis of snow water equivalent across the Colorado River Basin."),
-                    p("Spatial resolution: 4km, Temporal resolution: Daily")
+                    p("Analysis of snow water equivalent (SWE) data from various sources."),
+                    p("Includes spatial distribution, temporal trends, and seasonal patterns."),
+                    p("Critical for water resource management and flood forecasting.")
                 )
               ),
               fluidRow(
-                box(width = 12, title = "Analysis Controls",
-                    fluidRow(
-                      column(width = 4,
-                             selectInput("swe_component", "Select Component:",
-                                        choices = c("Total SWE", "Snow Depth", "Snow Density"),
-                                        selected = "Total SWE")
+                column(width = 12,
+                  infoBox("Max SWE", "1200 mm", 
+                         "Source: VIC Model - 2024", 
+                         icon = icon("snowflake"), color = "blue", width = 3),
+                  infoBox("Mean SWE", "450 mm", 
+                         "Source: VIC Model - 2024", 
+                         icon = icon("chart-line"), color = "green", width = 3),
+                  infoBox("Data Resolution", "1/16°", 
+                         "Source: VIC Model", 
+                         icon = icon("ruler"), color = "light-blue", width = 3),
+                  infoBox("Update Frequency", "Daily", 
+                         "Source: VIC Model", 
+                         icon = icon("clock"), color = "yellow", width = 3)
+                )
+              ),
+              fluidRow(
+                box(width = 12, title = "Snow Water Equivalent Analysis",
+                    tabsetPanel(
+                      tabPanel("Spatial Analysis",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Spatial Distribution",
+                                    img(src = "images/snow_water_analysis/spatial_distribution.png", width = "100%", height = "auto"),
+                                    p("Spatial distribution of snow water equivalent across the basin.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "VIC Model SWE",
+                                    img(src = "images/vic_snow_water_equivalent_map.png", width = "100%", height = "auto"),
+                                    p("VIC model simulated snow water equivalent.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Snow Melt Patterns",
+                                    img(src = "images/snow_water_analysis/snow_melt.png", width = "100%", height = "auto"),
+                                    p("Patterns of snow melt and accumulation.")
+                                )
+                             )
+                           )
                       ),
-                      column(width = 4,
-                             selectInput("swe_water_aggregation", "Select Time Aggregation:",
-                                        choices = c("Daily", "Weekly", "Monthly", "Seasonal"),
-                                        selected = "Daily")
+                      tabPanel("Temporal Analysis",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Time Series",
+                                    img(src = "images/snow_water_analysis/time_series.png", width = "100%", height = "auto"),
+                                    p("Temporal evolution of snow water equivalent.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Monthly Statistics",
+                                    img(src = "images/snow_water_analysis/monthly_stats.png", width = "100%", height = "auto"),
+                                    p("Monthly statistics of snow water equivalent.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Seasonal Patterns",
+                                    img(src = "images/swe_analysis/seasonal_patterns.png", width = "100%", height = "auto"),
+                                    p("Seasonal patterns in snow water equivalent.")
+                                )
+                             )
+                           )
                       ),
-                      column(width = 4,
-                             selectInput("swe_water_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Seasonal", "Extreme", "Impact"),
-                                        selected = "Trend")
+                      tabPanel("Precipitation Analysis",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Rain vs Snow",
+                                    img(src = "images/precipitation_rain_snow.png", width = "100%", height = "auto"),
+                                    p("Distribution of precipitation as rain vs snow.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Precipitation Analysis",
+                                    img(src = "images/precipitation_analysis/rain_vs_snow.png", width = "100%", height = "auto"),
+                                    p("Detailed analysis of precipitation types.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "SWE Analysis",
+                                    img(src = "images/swe_analysis.png", width = "100%", height = "auto"),
+                                    p("Comprehensive snow water equivalent analysis.")
+                                )
+                             )
+                           )
                       )
                     )
                 )
-              ),
-              fluidRow(
-                box(width = 12, title = "SWE Statistics",
-                    fluidRow(
-                      valueBoxOutput("swe_mean", width = 3),
-                      valueBoxOutput("swe_max", width = 3),
-                      valueBoxOutput("swe_min", width = 3),
-                      valueBoxOutput("swe_std", width = 3)
-                    )
-                )
-              ),
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("swe_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("swe_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Statistics", width = 12,
-                    plotlyOutput("swe_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Snow Accumulation", width = 6,
-                    plotlyOutput("swe_accumulation", height = "300px")),
-                box(title = "Snow Melt", width = 6,
-                    plotlyOutput("swe_melt", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Elevation Impact", width = 6,
-                    plotlyOutput("swe_elevation", height = "300px")),
-                box(title = "Climate Impact", width = 6,
-                    plotlyOutput("swe_climate", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Drought Impact", width = 6,
-                    plotlyOutput("swe_drought", height = "300px")),
-                box(title = "Water Resource Impact", width = 6,
-                    plotlyOutput("swe_water", height = "300px"))
               )
       ),
-
-      # Soil Moisture Tab
-      tabItem(tabName = "soil_moisture",
+      
+      # Precipitation Tab
+      tabItem(tabName = "precipitation",
+              h2("Precipitation Analysis - Colorado River Basin"),
               fluidRow(
-                div(class = "variable-info",
-                    h4("Soil Moisture Analysis"),
-                    p("Analysis of soil moisture across the Colorado River Basin."),
-                    p("Spatial resolution: 4km, Temporal resolution: Daily")
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Analysis Controls",
+                box(width = 12, title = "Overview", solidHeader = TRUE,
                     fluidRow(
-                      column(width = 4,
-                             selectInput("soil_depth_select", "Select Depth:",
-                                        choices = c("Surface", "Root Zone", "Profile"),
-                                        selected = "Surface")
-                      ),
-                      column(width = 4,
-                             selectInput("soil_aggregation", "Select Time Aggregation:",
-                                        choices = c("Daily", "Weekly", "Monthly", "Seasonal"),
-                                        selected = "Daily")
-                      ),
-                      column(width = 4,
-                             selectInput("soil_analysis", "Select Analysis Type:",
-                                        choices = c("Trend", "Anomaly", "Seasonal", "Extreme"),
-                                        selected = "Trend")
-                      )
+                      infoBox("Annual Average", "400 mm", "Precipitation", 
+                              icon = icon("cloud-rain"), color = "blue", width = 3,
+                              subtitle = "Source: PRISM Data"),
+                      infoBox("Data Resolution", "4 km", "Spatial Scale", 
+                              icon = icon("ruler"), color = "green", width = 3,
+                              subtitle = "Source: PRISM Data"),
+                      infoBox("Data Coverage", "1981-2024", "Temporal Range", 
+                              icon = icon("calendar"), color = "light-blue", width = 3,
+                              subtitle = "Source: PRISM Data"),
+                      infoBox("Update Frequency", "Monthly", "Temporal Resolution", 
+                              icon = icon("clock"), color = "purple", width = 3,
+                              subtitle = "Source: PRISM Data")
                     )
                 )
               ),
               fluidRow(
-                box(width = 12, title = "Soil Moisture Statistics",
-                    fluidRow(
-                      valueBoxOutput("soil_mean", width = 3),
-                      valueBoxOutput("soil_max", width = 3),
-                      valueBoxOutput("soil_min", width = 3),
-                      valueBoxOutput("soil_std", width = 3)
+                box(title = "Spatial Distribution", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/precipitation_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("About This Graph", 
+                               "Shows the spatial distribution of precipitation across the Colorado River Basin. 
+                               The map helps identify areas of high and low precipitation.",
+                               icon = icon("info-circle"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Time Series Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/precipitation_timeseries.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("About This Graph", 
+                               "Displays the temporal variation of precipitation. The time series shows 
+                               monthly values and helps identify trends and patterns.",
+                               icon = icon("info-circle"), 
+                               color = "blue", 
+                               width = 12)
                     )
                 )
               ),
               fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("soil_spatial", height = "400px")),
-                box(title = "Time Series", width = 6,
-                    plotlyOutput("soil_timeseries", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Monthly Statistics", width = 12,
-                    plotlyOutput("soil_monthly", height = "400px"))
-              ),
-              fluidRow(
-                box(title = "Depth Profile", width = 6,
-                    plotlyOutput("soil_depth", height = "300px")),
-                box(title = "Vegetation Impact", width = 6,
-                    plotlyOutput("soil_vegetation", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Drought Analysis", width = 6,
-                    plotlyOutput("soil_drought", height = "300px")),
-                box(title = "Climate Impact", width = 6,
-                    plotlyOutput("soil_climate", height = "300px"))
-              ),
-              fluidRow(
-                box(title = "Land Use Impact", width = 6,
-                    plotlyOutput("soil_landuse", height = "300px")),
-                box(title = "Water Resource Impact", width = 6,
-                    plotlyOutput("soil_water", height = "300px"))
+                box(title = "Monthly Patterns", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/precipitation_monthly.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("About This Graph", 
+                               "Shows the average monthly precipitation patterns. Helps identify 
+                               seasonal variations and typical precipitation distribution.",
+                               icon = icon("info-circle"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Trend Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/trend_precipitation.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("About This Graph", 
+                               "Shows the long-term trends in precipitation across the basin. 
+                               Helps identify areas of increasing or decreasing precipitation.",
+                               icon = icon("info-circle"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
               )
       ),
-
       # New tab for comprehensive analysis
       tabItem(
         tabName = "comprehensive_analysis",
@@ -2184,46 +2286,98 @@ ui <- dashboardPage(
               fluidRow(
                 div(class = "variable-info",
                     h4("Soil Moisture Analysis"),
-                    p("Analysis of soil moisture patterns across the Colorado River Basin."),
-                    p("Includes both surface and root zone soil moisture."),
-                    p("Critical for understanding water availability and drought conditions.")
+                    p("Analysis of soil moisture data from various sources."),
+                    p("Includes surface, root zone, and profile soil moisture analysis."),
+                    p("Critical for drought monitoring and agricultural planning.")
+                )
+              ),
+              fluidRow(
+                column(width = 12,
+                  infoBox("Surface SM", "0.25 m³/m³", 
+                         "Source: SMAP - 2024", 
+                         icon = icon("tint"), color = "blue", width = 3),
+                  infoBox("Root Zone SM", "0.35 m³/m³", 
+                         "Source: SMAP - 2024", 
+                         icon = icon("tint"), color = "green", width = 3),
+                  infoBox("Profile SM", "0.30 m³/m³", 
+                         "Source: VIC Model", 
+                         icon = icon("layer-group"), color = "light-blue", width = 3),
+                  infoBox("Update Frequency", "Daily", 
+                         "Source: SMAP/VIC", 
+                         icon = icon("clock"), color = "yellow", width = 3)
                 )
               ),
               fluidRow(
                 box(width = 12, title = "Soil Moisture Analysis",
                     tabsetPanel(
-                      tabPanel("Monthly Statistics",
+                      tabPanel("Spatial Analysis",
                            fluidRow(
                              column(width = 6,
-                                box(width = 12, title = "Monthly Statistics",
-                                    img(src = "images/soil_moisture_analysis/monthly_statistics.png", width = "100%", height = "auto"),
-                                    p("Monthly soil moisture statistics."),
-                                    plotlyOutput("soil_monthly_interactive", height = "300px")
+                                box(width = 12, title = "Spatial Distribution",
+                                    img(src = "images/soil_moisture_analysis/spatial_distribution.png", width = "100%", height = "auto"),
+                                    p("Spatial distribution of soil moisture across the basin.")
                                 )
                              ),
                              column(width = 6,
-                                box(width = 12, title = "Key Metrics",
-                                    valueBoxOutput("soil_mean", width = 12),
-                                    valueBoxOutput("soil_trend", width = 12),
-                                    valueBoxOutput("soil_anomaly", width = 12)
+                                box(width = 12, title = "VIC Model Soil Moisture",
+                                    img(src = "images/vic_soil_moisture_layer_1_map.png", width = "100%", height = "auto"),
+                                    p("VIC model simulated soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Soil Layers",
+                                    img(src = "images/soil_moisture_analysis/soil_layers.png", width = "100%", height = "auto"),
+                                    p("Distribution of soil moisture across different layers.")
                                 )
                              )
                            )
                       ),
-                      tabPanel("Correlation Analysis",
+                      tabPanel("Temporal Analysis",
                            fluidRow(
                              column(width = 6,
-                                box(width = 12, title = "Soil Moisture Correlations",
-                                    img(src = "images/analysis_results/correlation_soil_moisture.png", width = "100%", height = "auto"),
-                                    p("Correlation analysis of soil moisture with other variables."),
-                                    plotlyOutput("soil_correlation_interactive", height = "300px")
+                                box(width = 12, title = "Time Series",
+                                    img(src = "images/soil_moisture_analysis/time_series.png", width = "100%", height = "auto"),
+                                    p("Temporal evolution of soil moisture.")
                                 )
                              ),
                              column(width = 6,
-                                box(width = 12, title = "Correlation Metrics",
-                                    valueBoxOutput("soil_corr_strength", width = 12),
-                                    valueBoxOutput("soil_corr_significance", width = 12),
-                                    valueBoxOutput("soil_corr_trend", width = 12)
+                                box(width = 12, title = "Monthly Statistics",
+                                    img(src = "images/soil_moisture_analysis/monthly_stats.png", width = "100%", height = "auto"),
+                                    p("Monthly statistics of soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Monthly Trends",
+                                    img(src = "images/soil_moisture_analysis/monthly_statistics.png", width = "100%", height = "auto"),
+                                    p("Monthly trends in soil moisture.")
+                                )
+                             )
+                           )
+                      ),
+                      tabPanel("Comparative Analysis",
+                           fluidRow(
+                             column(width = 6,
+                                box(width = 12, title = "Correlation Analysis",
+                                    img(src = "images/analysis_results/correlation_soil_moisture.png", width = "100%", height = "auto"),
+                                    p("Correlation between different soil moisture layers.")
+                                )
+                             ),
+                             column(width = 6,
+                                box(width = 12, title = "Trend Analysis",
+                                    img(src = "images/analysis_results/trend_soil_moisture.png", width = "100%", height = "auto"),
+                                    p("Long-term trends in soil moisture.")
+                                )
+                             )
+                           ),
+                           fluidRow(
+                             column(width = 12,
+                                box(width = 12, title = "Soil Moisture Overview",
+                                    img(src = "images/soil_moisture.png", width = "100%", height = "auto"),
+                                    p("Comprehensive soil moisture analysis.")
                                 )
                              )
                            )
@@ -2274,22 +2428,9 @@ ui <- dashboardPage(
               fluidRow(
                 div(class = "variable-info",
                     h4("Water Balance Analysis"),
-                    p("Analysis of water balance components and their interactions."),
-                    p("Includes precipitation, evapotranspiration, runoff, and storage changes.")
-                )
-              ),
-              fluidRow(
-                box(width = 12, title = "Water Balance Metrics",
-                    fluidRow(
-                      column(width = 6,
-                             valueBoxOutput("water_balance_mean", width = 12),
-                             valueBoxOutput("water_balance_trend", width = 12),
-                             valueBoxOutput("water_balance_anomaly", width = 12)
-                      ),
-                      column(width = 6,
-                             plotlyOutput("water_balance_components", height = "300px")
-                      )
-                    )
+                    p("Analysis of water balance components across the Colorado River Basin."),
+                    p("Includes precipitation, evapotranspiration, runoff, and storage changes."),
+                    p("Critical for understanding the basin's water budget.")
                 )
               ),
               fluidRow(
@@ -2313,6 +2454,777 @@ ui <- dashboardPage(
                              )
                            )
                       )
+                    )
+                )
+              )
+      ),
+      # VIC Data Analysis Tab
+      tabItem(tabName = "vic_analysis",
+        fluidRow(
+          # Info tiles at the top
+          valueBoxOutput("vic_precip_box", width = 3),
+          valueBoxOutput("vic_evap_box", width = 3),
+          valueBoxOutput("vic_runoff_box", width = 3),
+          valueBoxOutput("vic_trend_box", width = 3)
+        ),
+        fluidRow(
+          # Variable Statistics
+          box(width = 12, title = "Variable Statistics",
+            fluidRow(
+              column(width = 3,
+                valueBoxOutput("vic_mean_box", width = 12)
+              ),
+              column(width = 3,
+                valueBoxOutput("vic_max_box", width = 12)
+              ),
+              column(width = 3,
+                valueBoxOutput("vic_min_box", width = 12)
+              ),
+              column(width = 3,
+                valueBoxOutput("vic_trend_box", width = 12)
+              )
+            )
+          )
+        ),
+        fluidRow(
+          # Analysis controls and plots
+          column(width = 12,
+            box(width = 12, title = "VIC Data Analysis",
+              fluidRow(
+                column(width = 4,
+                  selectInput("vic_variable", "Select Variable",
+                    choices = c("Precipitation" = "precipitation",
+                              "Evapotranspiration" = "evapotranspiration",
+                              "Runoff" = "runoff"),
+                    selected = "precipitation"
+                  )
+                ),
+                column(width = 4,
+                  dateInput("vic_date", "Select Date", value = Sys.Date())
+                ),
+                column(width = 4,
+                  actionButton("vic_update", "Update Analysis", class = "btn-primary")
+                )
+              ),
+              fluidRow(
+                column(width = 6,
+                  plotlyOutput("vic_spatial_plot", height = "500px")
+                ),
+                column(width = 6,
+                  plotlyOutput("vic_time_series", height = "500px")
+                )
+              )
+            )
+          )
+        )
+      ),
+      tabItem(tabName = "swe_anomalies",
+              h2("Snow Water Equivalent (SWE) Anomalies Analysis"),
+              fluidRow(
+                box(width = 12, title = "SWE Data Overview", solidHeader = TRUE,
+                    fluidRow(
+                      infoBox("Current SWE", "85%", "of Normal", 
+                              icon = icon("snowflake"), color = "blue", width = 3,
+                              subtitle = "Source: SNODAS - 2024"),
+                      infoBox("Data Resolution", "1 km", "Spatial Scale", 
+                              icon = icon("ruler"), color = "green", width = 3,
+                              subtitle = "Source: SNODAS - 2024"),
+                      infoBox("Data Coverage", "2003-2024", "Historical Period", 
+                              icon = icon("calendar"), color = "light-blue", width = 3,
+                              subtitle = "Source: SNODAS - 2024"),
+                      infoBox("Update Frequency", "Daily", "Data Refresh", 
+                              icon = icon("clock"), color = "purple", width = 3,
+                              subtitle = "Source: SNODAS - 2024")
+                    )
+                )
+              ),
+              box(width = 12, title = "SWE Analysis", solidHeader = TRUE,
+                  tabsetPanel(
+                    tabPanel("April 1st SWE Anomalies",
+                             fluidRow(
+                               infoBox("Current Anomaly", "-25%", "2024", 
+                                      icon = icon("snowflake"), color = "blue", width = 3),
+                               infoBox("Historical Range", "±40%", "Variability", 
+                                      icon = icon("wave-square"), color = "green", width = 3),
+                               infoBox("Trend", "-2.5%/year", "2003-2024", 
+                                      icon = icon("chart-line"), color = "light-blue", width = 3),
+                               infoBox("Last Peak", "+35%", "2011", 
+                                      icon = icon("arrow-up"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/april1_swe_anomalies.png", width = "100%", height = "auto"),
+                             p("April 1st SWE anomalies showing deviations from the long-term average.")
+                    ),
+                    tabPanel("SWE Trends",
+                             fluidRow(
+                               infoBox("Early Period", "-1.2%/year", "2003-2010", 
+                                      icon = icon("chart-line"), color = "blue", width = 3),
+                               infoBox("Middle Period", "-2.8%/year", "2011-2020", 
+                                      icon = icon("chart-line"), color = "green", width = 3),
+                               infoBox("Recent Period", "-3.5%/year", "2021-2024", 
+                                      icon = icon("chart-line"), color = "light-blue", width = 3),
+                               infoBox("Overall Trend", "-2.5%/year", "2003-2024", 
+                                      icon = icon("chart-line"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/april1_swe_trends.png", width = "100%", height = "auto"),
+                             p("Long-term trends in April 1st SWE showing changes over time.")
+                    ),
+                    tabPanel("Seasonal Patterns",
+                             fluidRow(
+                               infoBox("Peak Month", "March", "Average", 
+                                      icon = icon("calendar"), color = "blue", width = 3),
+                               infoBox("Accumulation", "Oct-Mar", "Period", 
+                                      icon = icon("snowflake"), color = "green", width = 3),
+                               infoBox("Melt Period", "Apr-Jul", "Duration", 
+                                      icon = icon("sun"), color = "light-blue", width = 3),
+                               infoBox("Seasonal Range", "±60%", "Variability", 
+                                      icon = icon("wave-square"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/seasonal_patterns.png", width = "100%", height = "auto"),
+                             p("Seasonal patterns of SWE showing typical accumulation and melt cycles.")
+                    ),
+                    tabPanel("Elevation Analysis",
+                             fluidRow(
+                               infoBox("High Elevation", "-15%", ">3000m", 
+                                      icon = icon("mountain"), color = "blue", width = 3),
+                               infoBox("Mid Elevation", "-28%", "2000-3000m", 
+                                      icon = icon("mountain"), color = "green", width = 3),
+                               infoBox("Low Elevation", "-35%", "<2000m", 
+                                      icon = icon("mountain"), color = "light-blue", width = 3),
+                               infoBox("Elevation Trend", "-0.5%/100m", "Gradient", 
+                                      icon = icon("chart-line"), color = "purple", width = 3)
+                             ),
+                             img(src = "images/elevation_analysis.png", width = "100%", height = "auto"),
+                             p("SWE anomalies analyzed by elevation zones in the Colorado River Basin.")
+                    )
+                  )
+              )
+      ),
+      tabItem(tabName = "vic",
+              h2("VIC Model Analysis - Colorado River Basin"),
+              fluidRow(
+                box(width = 12, title = "Overview", solidHeader = TRUE,
+                    fluidRow(
+                      infoBox("Model Resolution", "4 km", "Spatial Scale", 
+                              icon = icon("ruler"), color = "blue", width = 3,
+                              subtitle = "Source: VIC Model"),
+                      infoBox("Temporal Resolution", "Daily", "Time Step", 
+                              icon = icon("clock"), color = "green", width = 3,
+                              subtitle = "Source: VIC Model"),
+                      infoBox("Simulation Period", "1981-2024", "Coverage", 
+                              icon = icon("calendar"), color = "light-blue", width = 3,
+                              subtitle = "Source: VIC Model"),
+                      infoBox("Output Variables", "13", "Available", 
+                              icon = icon("list"), color = "purple", width = 3,
+                              subtitle = "Source: VIC Model")
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Precipitation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/precipitation_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Spatial Distribution", 
+                               "Shows the spatial distribution of precipitation across the basin. Darker colors indicate higher precipitation amounts.",
+                               icon = icon("map"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated precipitation at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Evapotranspiration Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/evapotranspiration_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Spatial Distribution", 
+                               "Shows the spatial distribution of evapotranspiration. Higher values indicate areas with more water loss to the atmosphere.",
+                               icon = icon("map"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated evapotranspiration at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Soil Moisture Analysis - Layer 1", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/soil_moisture_layer_1_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Top Layer", 
+                               "Shows soil moisture in the top layer (0-10cm). Critical for vegetation and surface processes.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated soil moisture at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Soil Moisture Analysis - Layer 2", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/soil_moisture_layer_2_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Middle Layer", 
+                               "Shows soil moisture in the middle layer (10-40cm). Important for root zone water availability.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated soil moisture at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Soil Moisture Analysis - Layer 3", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/soil_moisture_layer_3_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Bottom Layer", 
+                               "Shows soil moisture in the bottom layer (40-100cm). Important for deep percolation and groundwater recharge.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated soil moisture at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Snow Water Equivalent Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/snow_water_equivalent_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Snow Water Content", 
+                               "Shows the amount of water stored in snowpack. Critical for water supply and spring runoff.",
+                               icon = icon("snowflake"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated SWE at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Surface Runoff Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/runoff_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Runoff Generation", 
+                               "Shows areas where precipitation exceeds infiltration capacity, generating surface runoff.",
+                               icon = icon("water"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated runoff at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Baseflow Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/baseflow_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Groundwater Contribution", 
+                               "Shows the contribution of groundwater to streamflow. Important for maintaining baseflow during dry periods.",
+                               icon = icon("tint"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated baseflow at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Temperature Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/temperature_spatial.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Temperature Distribution", 
+                               "Shows the spatial distribution of air temperature. Influences snowmelt and evapotranspiration.",
+                               icon = icon("temperature-high"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model simulated temperature at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Daily data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Water Balance Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/analysis_results/water_balance_monthly.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Water Balance Components", 
+                               "Shows the monthly distribution of precipitation, evapotranspiration, and runoff.",
+                               icon = icon("balance-scale"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Data Source", 
+                               "VIC model water balance components at 4km resolution",
+                               icon = icon("database"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Temporal Coverage", 
+                               "Monthly data from 1981 to 2024",
+                               icon = icon("calendar-alt"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Time Series Analysis", width = 12, solidHeader = TRUE,
+                    img(src = "images/vic_time_series.png", 
+                        width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Temporal Evolution", 
+                               "Shows the temporal evolution of key hydrological variables over the entire simulation period.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12),
+                        infoBox("Variables Displayed", 
+                               "Precipitation, Evapotranspiration, Runoff, and Soil Moisture",
+                               icon = icon("list"), 
+                               color = "green", 
+                               width = 12),
+                        infoBox("Analysis Period", 
+                               "Complete simulation period from 1981 to 2024",
+                               icon = icon("calendar"), 
+                               color = "light-blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_vic",
+              h2("VIC Model Static Outputs"),
+              fluidRow(
+                box(title = "Time Series Analysis", width = 12, solidHeader = TRUE,
+                    img(src = "images/vic_time_series.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Temporal Evolution", 
+                               "Shows the temporal evolution of key hydrological variables over the entire simulation period.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Monthly Statistics", width = 12, solidHeader = TRUE,
+                    img(src = "images/vic_monthly_stats.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Monthly Patterns", 
+                               "Monthly distribution of VIC model variables.",
+                               icon = icon("calendar-alt"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Spatial Distribution", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_precipitation_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Precipitation", 
+                               "Spatial distribution of precipitation across the basin.",
+                               icon = icon("cloud-rain"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Spatial Distribution", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_evapotranspiration_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Evapotranspiration", 
+                               "Spatial distribution of evapotranspiration across the basin.",
+                               icon = icon("sun"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Soil Moisture Layers", width = 4, solidHeader = TRUE,
+                    img(src = "images/vic_soil_moisture_layer_1_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Layer 1 (0-10cm)", 
+                               "Top layer soil moisture distribution.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Soil Moisture Layers", width = 4, solidHeader = TRUE,
+                    img(src = "images/vic_soil_moisture_layer_2_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Layer 2 (10-40cm)", 
+                               "Middle layer soil moisture distribution.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Soil Moisture Layers", width = 4, solidHeader = TRUE,
+                    img(src = "images/vic_soil_moisture_layer_3_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Layer 3 (40-100cm)", 
+                               "Bottom layer soil moisture distribution.",
+                               icon = icon("layer-group"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Water Balance Components", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_runoff_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Surface Runoff", 
+                               "Spatial distribution of surface runoff.",
+                               icon = icon("water"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Water Balance Components", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_baseflow_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Baseflow", 
+                               "Spatial distribution of baseflow.",
+                               icon = icon("tint"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Snow Water Equivalent", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_snow_water_equivalent_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Snow Water Content", 
+                               "Spatial distribution of snow water equivalent.",
+                               icon = icon("snowflake"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Combined Time Series", width = 6, solidHeader = TRUE,
+                    img(src = "images/vic_combined_timeseries.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Multi-variable Time Series", 
+                               "Combined time series of key hydrological variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Normalized Time Series", width = 12, solidHeader = TRUE,
+                    img(src = "images/vic_combined_timeseries_normalized.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Normalized Variables", 
+                               "Normalized time series for better comparison across variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_smap",
+              h2("SMAP Static Outputs"),
+              fluidRow(
+                box(title = "Surface Soil Moisture", width = 6, solidHeader = TRUE,
+                    img(src = "images/smap_surface_time_series.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Time Series", 
+                               "Temporal evolution of surface soil moisture.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Root Zone Soil Moisture", width = 6, solidHeader = TRUE,
+                    img(src = "images/smap_rootzone_time_series.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Time Series", 
+                               "Temporal evolution of root zone soil moisture.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Trend Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/smap_surface_trend.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Surface Trend", 
+                               "Long-term trends in surface soil moisture.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Trend Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/smap_rootzone_trend.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Root Zone Trend", 
+                               "Long-term trends in root zone soil moisture.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_grace",
+              h2("GRACE Static Outputs"),
+              fluidRow(
+                box(title = "Time Series Analysis", width = 12, solidHeader = TRUE,
+                    img(src = "images/grace_time_series.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Water Storage", 
+                               "Temporal evolution of total water storage.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Trend Analysis", width = 12, solidHeader = TRUE,
+                    img(src = "images/grace_trend.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Storage Trend", 
+                               "Long-term trends in total water storage.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_prism",
+              h2("PRISM Static Outputs"),
+              fluidRow(
+                box(title = "Precipitation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/precipitation_spatial.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Spatial Distribution", 
+                               "Spatial distribution of precipitation.",
+                               icon = icon("map"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Precipitation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/precipitation_timeseries.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Time Series", 
+                               "Temporal evolution of precipitation.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Monthly Patterns", width = 6, solidHeader = TRUE,
+                    img(src = "images/precipitation_monthly.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Monthly Statistics", 
+                               "Monthly distribution of precipitation.",
+                               icon = icon("calendar-alt"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Rain vs Snow", width = 6, solidHeader = TRUE,
+                    img(src = "images/precipitation_rain_snow.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Precipitation Type", 
+                               "Distribution of rain and snow precipitation.",
+                               icon = icon("snowflake"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_snotel",
+              h2("SNOTEL Static Outputs"),
+              fluidRow(
+                box(title = "Station Network", width = 12, solidHeader = TRUE,
+                    img(src = "images/snotel_map.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Station Distribution", 
+                               "Distribution of SNOTEL stations across the basin.",
+                               icon = icon("map-marker-alt"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Time Series Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/snotel_timeseries.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Snow Water Equivalent", 
+                               "Temporal evolution of snow water equivalent.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Seasonal Patterns", width = 6, solidHeader = TRUE,
+                    img(src = "images/snotel_seasonal.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Seasonal Cycle", 
+                               "Seasonal patterns of snow water equivalent.",
+                               icon = icon("calendar-alt"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Elevation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/snotel_elevation.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Station Elevation", 
+                               "Elevation distribution of SNOTEL stations.",
+                               icon = icon("mountain"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Trend Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/snotel_trend.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Long-term Trends", 
+                               "Long-term trends in snow water equivalent.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              )
+      ),
+      tabItem(tabName = "static_combined",
+              h2("Combined Analysis Static Outputs"),
+              fluidRow(
+                box(title = "Trend Analysis", width = 12, solidHeader = TRUE,
+                    img(src = "images/combined_trends.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Multi-variable Trends", 
+                               "Long-term trends across multiple variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Normalized Trends", width = 12, solidHeader = TRUE,
+                    img(src = "images/combined_trends_normalized.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Normalized Comparison", 
+                               "Normalized trends for better comparison across variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                )
+              ),
+              fluidRow(
+                box(title = "Correlation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/correlation_soil_moisture.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Soil Moisture Correlations", 
+                               "Correlations between soil moisture and other variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
+                    )
+                ),
+                box(title = "Correlation Analysis", width = 6, solidHeader = TRUE,
+                    img(src = "images/correlation_swe.png", width = "100%", height = "auto"),
+                    div(style = "margin-top: 20px;",
+                        infoBox("Snow Water Equivalent Correlations", 
+                               "Correlations between snow water equivalent and other variables.",
+                               icon = icon("chart-line"), 
+                               color = "blue", 
+                               width = 12)
                     )
                 )
               )
@@ -2683,57 +3595,38 @@ server <- function(input, output, session) {
   
   # Load GRACE data
   grace_data <- reactive({
-    # Check if cached data exists
-    cache_file <- "data/grace_processed/grace_cache.rds"
-    if (file.exists(cache_file)) {
-      return(readRDS(cache_file))
-    }
-    
     tryCatch({
-      nc <- load_grace_data()
+      # Load GRACE data
+      nc <- nc_open("data/GRCTellus.JPL.200204_202401.GLO.RL06.1M.MSCNv03CRI.nc")
       on.exit(nc_close(nc))
       
-      # Get dimensions first
+      # Extract data
+      tws <- ncvar_get(nc, "lwe_thickness")
+      uncertainty <- ncvar_get(nc, "uncertainty")
+      lon <- ncvar_get(nc, "lon")
+      lat <- ncvar_get(nc, "lat")
       time <- ncvar_get(nc, "time")
+      
+      # Convert time to dates
       dates <- as.Date(time, origin = "2002-01-01")
       
-      # Calculate spatial means directly while reading
-      n_times <- length(time)
-      tws_means <- numeric(n_times)
-      uncertainty_means <- numeric(n_times)
+      # Create data frame
+      data <- expand.grid(lon = lon, lat = lat, date = dates)
+      data$tws <- as.vector(tws)
+      data$uncertainty <- as.vector(uncertainty)
       
-      # Process data in chunks
-      chunk_size <- 12  # Process one year at a time
-      n_chunks <- ceiling(n_times / chunk_size)
+      # Calculate anomalies
+      monthly_means <- data %>%
+        mutate(month = month(date)) %>%
+        group_by(month) %>%
+        summarise(monthly_mean = mean(tws, na.rm = TRUE))
       
-      for(i in 1:n_chunks) {
-        start_idx <- (i-1) * chunk_size + 1
-        end_idx <- min(i * chunk_size, n_times)
-        
-        # Read chunk of data
-        tws_chunk <- ncvar_get(nc, "lwe_thickness", 
-                              start = c(1, 1, start_idx), 
-                              count = c(-1, -1, end_idx - start_idx + 1))
-        uncertainty_chunk <- ncvar_get(nc, "uncertainty",
-                                     start = c(1, 1, start_idx),
-                                     count = c(-1, -1, end_idx - start_idx + 1))
-        
-        # Calculate means for the chunk
-        tws_means[start_idx:end_idx] <- apply(tws_chunk, 3, mean, na.rm = TRUE)
-        uncertainty_means[start_idx:end_idx] <- apply(uncertainty_chunk, 3, mean, na.rm = TRUE)
-      }
+      data <- data %>%
+        mutate(month = month(date)) %>%
+        left_join(monthly_means, by = "month") %>%
+        mutate(anomaly = tws - monthly_mean)
       
-      # Create result data frame
-      result <- list(
-        dates = dates,
-        tws_means = tws_means,
-        uncertainty_means = uncertainty_means
-      )
-      
-      # Cache the results
-      saveRDS(result, cache_file)
-      
-      return(result)
+      return(data)
     }, error = function(e) {
       showNotification(paste("Error loading GRACE data:", e$message), type = "error")
       return(NULL)
@@ -2788,10 +3681,13 @@ server <- function(input, output, session) {
     # Get the selected year
     selected_year <- input$grace_year
     
+    # Calculate spatial mean for each time step
+    uncertainty_means <- apply(data$uncertainty, 3, mean, na.rm = TRUE)
+    
     # Create time series data frame
     ts_df <- data.frame(
       Date = data$dates,
-      Uncertainty = data$uncertainty_means,
+      Uncertainty = uncertainty_means,
       Year = format(data$dates, "%Y")
     )
     
@@ -2849,10 +3745,13 @@ server <- function(input, output, session) {
     # Get the selected year
     selected_year <- input$grace_year
     
+    # Calculate spatial mean for each time step
+    tws_means <- apply(data$tws, 3, mean, na.rm = TRUE)
+    
     # Create time series data frame
     ts_df <- data.frame(
       Date = data$dates,
-      TWS = data$tws_means,
+      TWS = tws_means,
       Year = format(data$dates, "%Y")
     )
     
@@ -2865,19 +3764,21 @@ server <- function(input, output, session) {
       group_by(Month) %>%
       summarise(Climatology = mean(TWS, na.rm = TRUE))
     
-    # Calculate anomalies
+    # Calculate anomalies (soil moisture variations)
     ts_df <- ts_df %>%
       mutate(Month = format(Date, "%B")) %>%
       left_join(monthly_clim, by = "Month") %>%
-      mutate(Anomaly = TWS - Climatology)
+      mutate(Soil_Moisture = TWS - Climatology)
     
+    # Create soil moisture profile plot
     plot_ly(ts_df) %>%
-      add_trace(x = ~Date, y = ~Anomaly, type = 'scatter', mode = 'lines',
-                name = 'TWS Anomaly', line = list(color = 'blue')) %>%
+      add_trace(x = ~Date, y = ~Soil_Moisture, type = 'scatter', mode = 'lines',
+                name = 'Soil Moisture', line = list(color = 'green')) %>%
+      add_hline(y = 0, line = list(dash = "dash"), name = "Climatology") %>%
       layout(
-        title = paste("TWS Anomaly -", selected_year),
+        title = paste("Soil Moisture Profile -", selected_year),
         xaxis = list(title = "Date"),
-        yaxis = list(title = "TWS Anomaly (cm)"),
+        yaxis = list(title = "Soil Moisture Anomaly (cm)"),
         showlegend = TRUE
       )
   })
@@ -3655,7 +4556,7 @@ server <- function(input, output, session) {
             line = list(color = 'rgb(0, 128, 255)', width = 2),
             marker = list(color = 'rgb(0, 128, 255)', size = 8)) %>%
       layout(title = "Seasonal Patterns in SWE",
-             xaxis = list(title = "Month", ticktext = month.abb, tickvals = 1:12),
+             xaxis = list(title = "Month"),
              yaxis = list(title = "Mean SWE (mm)"))
   })
 
@@ -4454,7 +5355,7 @@ server <- function(input, output, session) {
     div(class = "plot-container",
         fluidRow(
           column(width = 12,
-                 infoBox("TWS Change", "-15cm", 
+                 infoBox("TWS Change", "-15 cm", 
                         "Source: GRACE - 2024", 
                         icon = icon("water"), color = "blue", width = 4),
                  infoBox("Annual Variability", "±20cm", 
@@ -4637,1724 +5538,645 @@ server <- function(input, output, session) {
   # GRACE Terrestrial Water Storage
   output$grace_tws <- renderUI({
     fluidRow(
-      # Info boxes
-      infoBox("TWS Change", "-15 cm", "GRACE Data - 2024", 
-              icon = icon("balance-scale"), color = "blue", width = 4),
-      infoBox("Annual Variability", "±20 cm", "GRACE Mission", 
-              icon = icon("chart-line"), color = "green", width = 4),
-      infoBox("Data Resolution", "300 km", "GRACE/GRACE-FO", 
-              icon = icon("ruler"), color = "light-blue", width = 4),
-      
-      # Static image
-      column(width = 12,
-        box(title = "GRACE Terrestrial Water Storage Trends", width = NULL, solidHeader = TRUE,
-            img(src = "images/grace_trend.png", width = "100%", height = "auto"),
-            p("Trend analysis of terrestrial water storage from GRACE data.")
-        )
+      # Info boxes at the top
+      box(width = 12, title = "GRACE Data Overview", solidHeader = TRUE,
+          fluidRow(
+            infoBox("TWS Change", "-15 cm", "GRACE Data - 2024", 
+                    icon = icon("balance-scale"), color = "blue", width = 4,
+                    subtitle = "Source: GRACE/GRACE-FO Mission - 2024"),
+            infoBox("Annual Variability", "±20 cm", "GRACE Mission", 
+                    icon = icon("chart-line"), color = "green", width = 4,
+                    subtitle = "Source: NASA JPL - 2024"),
+            infoBox("Data Resolution", "300 km", "GRACE/GRACE-FO", 
+                    icon = icon("ruler"), color = "light-blue", width = 4,
+                    subtitle = "Source: NASA JPL - 2024")
+          ),
+          fluidRow(
+            infoBox("Data Coverage", "2002-2024", "Historical Period", 
+                    icon = icon("calendar"), color = "purple", width = 4,
+                    subtitle = "Source: GRACE/GRACE-FO Mission - 2024"),
+            infoBox("Update Frequency", "Monthly", "Data Refresh", 
+                    icon = icon("clock"), color = "yellow", width = 4,
+                    subtitle = "Source: NASA JPL - 2024"),
+            infoBox("Uncertainty", "±2 cm", "Measurement Error", 
+                    icon = icon("exclamation-triangle"), color = "red", width = 4,
+                    subtitle = "Source: NASA JPL - 2024")
+          ),
+          fluidRow(
+            infoBox("Spatial Coverage", "Global", "Mission Coverage", 
+                    icon = icon("globe"), color = "navy", width = 4,
+                    subtitle = "Source: GRACE/GRACE-FO Mission - 2024"),
+            infoBox("Data Latency", "2-3 months", "Processing Time", 
+                    icon = icon("hourglass-half"), color = "teal", width = 4,
+                    subtitle = "Source: NASA JPL - 2024"),
+            infoBox("Mission Status", "Active", "GRACE-FO", 
+                    icon = icon("satellite"), color = "maroon", width = 4,
+                    subtitle = "Source: NASA JPL - 2024")
+          )
       ),
       
-      # Interactive plot
-      column(width = 12,
-        box(title = "Interactive TWS Analysis", width = NULL, solidHeader = TRUE,
-            plotlyOutput("grace_tws_interactive")
-        )
+      # Analysis Controls
+      box(width = 12, title = "Analysis Controls", solidHeader = TRUE,
+          fluidRow(
+            column(width = 4,
+                   sliderInput("grace_year", "Select Year:",
+                              min = 2002, max = 2024,
+                              value = 2024, step = 1,
+                              animate = animationOptions(interval = 1000))
+            ),
+            column(width = 4,
+                   selectInput("grace_variable", "Select Variable:",
+                              choices = c("TWS", "Uncertainty", "Anomaly"),
+                              selected = "TWS")
+            ),
+            column(width = 4,
+                   selectInput("grace_aggregation", "Time Aggregation:",
+                              choices = c("Monthly", "Seasonal", "Annual"),
+                              selected = "Monthly")
+            )
+          )
+      ),
+      
+      # Graph Analysis Section
+      box(width = 12, title = "Graph Analysis", solidHeader = TRUE,
+          tabBox(width = 12,
+                 tabPanel("Spatial Analysis",
+                          plotlyOutput("grace_interactive_map", height = "500px")
+                 ),
+                 tabPanel("Temporal Analysis",
+                          plotlyOutput("grace_timeseries", height = "500px")
+                 ),
+                 tabPanel("Seasonal Patterns",
+                          plotlyOutput("grace_seasonal", height = "500px")
+                 ),
+                 tabPanel("Trend Analysis",
+                          plotlyOutput("grace_trend", height = "500px")
+                 )
+          )
       )
     )
   })
 
-  # SNOTEL Data
-  output$snotel_data <- renderUI({
-    fluidRow(
-      # Info boxes
-      infoBox("Stations", "120", "SNOTEL Network", 
-              icon = icon("snowflake"), color = "blue", width = 4),
-      infoBox("Elevation Range", "1500-4000m", "SNOTEL Sites", 
-              icon = icon("mountain"), color = "green", width = 4),
-      infoBox("Data Frequency", "Hourly", "SNOTEL Network", 
-              icon = icon("clock"), color = "light-blue", width = 4),
-      
-      # Time Series
-      column(width = 12,
-        box(title = "SNOTEL Time Series", width = NULL, solidHeader = TRUE,
-            img(src = "images/snotel_timeseries.png", width = "100%", height = "auto"),
-            p("Historical time series of snow water equivalent from SNOTEL stations.")
-        )
-      ),
-      
-      # Interactive time series
-      column(width = 12,
-        box(title = "Interactive Time Series", width = NULL, solidHeader = TRUE,
-            plotlyOutput("snotel_timeseries_interactive")
-        )
-      ),
-      
-      # Seasonal Patterns
-      column(width = 12,
-        box(title = "Seasonal Patterns", width = NULL, solidHeader = TRUE,
-            img(src = "images/snotel_seasonal.png", width = "100%", height = "auto"),
-            p("Seasonal patterns in snow water equivalent across SNOTEL stations.")
-        )
-      ),
-      
-      # Interactive seasonal patterns
-      column(width = 12,
-        box(title = "Interactive Seasonal Analysis", width = NULL, solidHeader = TRUE,
-            plotlyOutput("snotel_seasonal_interactive")
-        )
-      ),
-      
-      # Elevation Analysis
-      column(width = 12,
-        box(title = "Elevation Analysis", width = NULL, solidHeader = TRUE,
-            img(src = "images/snotel_elevation.png", width = "100%", height = "auto"),
-            p("Relationship between elevation and snow water equivalent.")
-        )
-      ),
-      
-      # Interactive elevation analysis
-      column(width = 12,
-        box(title = "Interactive Elevation Analysis", width = NULL, solidHeader = TRUE,
-            plotlyOutput("snotel_elevation_interactive")
-        )
-      ),
-      
-      # Trend Analysis
-      column(width = 12,
-        box(title = "Trend Analysis", width = NULL, solidHeader = TRUE,
-            img(src = "images/snotel_trend.png", width = "100%", height = "auto"),
-            p("Long-term trends in snow water equivalent across the basin.")
-        )
-      ),
-      
-      # Interactive trend analysis
-      column(width = 12,
-        box(title = "Interactive Trend Analysis", width = NULL, solidHeader = TRUE,
-            plotlyOutput("snotel_trend_interactive")
-        )
-      )
-    )
-  })
-
-  output$snotel_seasonal <- renderUI({
-    div(class = "plot-container",
-        fluidRow(
-          column(width = 12,
-                 box(title = "Seasonal Patterns", width = NULL, solidHeader = TRUE,
-                     img(src = "images/seasonal_patterns.png", width = "100%", height = "auto"),
-                     p("Seasonal variations in snow water equivalent across the basin.")
-                 )
-          )
-        ),
-        fluidRow(
-          column(width = 12,
-                 plotlyOutput("snotel_seasonal_plot", height = "600px")
-          )
-        )
-    )
-  })
-
-  output$snotel_elevation <- renderUI({
-    div(class = "plot-container",
-        fluidRow(
-          column(width = 12,
-                 box(title = "Elevation Analysis", width = NULL, solidHeader = TRUE,
-                     img(src = "images/elevation_analysis.png", width = "100%", height = "auto"),
-                     p("Relationship between elevation and snow water equivalent.")
-                 )
-          )
-        ),
-        fluidRow(
-          column(width = 12,
-                 plotlyOutput("snotel_elevation_plot", height = "600px")
-          )
-        )
-    )
-  })
-
-  output$snotel_trend <- renderUI({
-    div(class = "plot-container",
-        fluidRow(
-          column(width = 12,
-                 box(title = "Trend Analysis", width = NULL, solidHeader = TRUE,
-                     img(src = "images/snotel_trend.png", width = "100%", height = "auto"),
-                     p("Long-term trends in snow water equivalent across the basin.")
-                 )
-          )
-        ),
-        fluidRow(
-          column(width = 12,
-                 plotlyOutput("snotel_trend_plot", height = "600px")
-          )
-        )
-    )
-  })
-
-  output$snotel_time_series <- renderUI({
-    div(class = "plot-container",
-        fluidRow(
-          column(width = 12,
-                 box(title = "SNOTEL Time Series", width = NULL, solidHeader = TRUE,
-                     img(src = "images/snotel_time_series.png", width = "100%", height = "auto"),
-                     p("Historical time series of SNOTEL station measurements.")
-                 )
-          )
-        ),
-        fluidRow(
-          column(width = 12,
-                 box(title = "SNOTEL Elevation Analysis", width = NULL, solidHeader = TRUE,
-                     img(src = "images/snotel_elevation.png", width = "100%", height = "auto"),
-                     p("Analysis of SNOTEL measurements across different elevations.")
-                 )
-          )
-        )
-    )
-  })
-
-  # Add year/time slider inputs
-  output$year_slider <- renderUI({
-    sliderInput("selected_year", "Select Year:",
-                min = 1982,
-                max = 2024,
-                value = 2024,
-                step = 1,
-                sep = "",
-                animate = animationOptions(interval = 1000))
-  })
-
-  output$day_slider <- renderUI({
-    sliderInput("selected_day", "Select Day of Year:",
-                min = 1,
-                max = 365,
-                value = 1,
-                step = 1,
-                sep = "",
-                animate = animationOptions(interval = 1000))
-  })
-
-  # Enhanced interactive maps
-  output$vic_interactive_map <- renderPlotly({
-    req(vic_data())
-    data <- vic_data()
-    year <- input$vic_year_slider
-    day <- input$vic_day_slider
-    
-    # Filter data for selected year and day
-    filtered_data <- data %>%
-      filter(year == year, day == day)
-    
-    # Create interactive map
-    plot_ly(filtered_data, x = ~lon, y = ~lat, z = ~value,
-            type = "heatmap", colors = "Viridis") %>%
-      layout(title = paste("VIC Model Output - Year:", year, "Day:", day))
-  })
-  
-  output$vic_time_series <- renderPlotly({
-    req(vic_data())
-    data <- vic_data()
-    year <- input$vic_year_slider
-    
-    # Filter data for selected year
-    filtered_data <- data %>%
-      filter(year == year)
-    
-    # Create time series plot
-    plot_ly(filtered_data, x = ~day, y = ~value, type = "scatter", mode = "lines",
-            color = ~variable) %>%
-      layout(title = paste("VIC Model Time Series - Year:", year))
-  })
-  
-  # SMAP tab
-  output$smap_interactive_map <- renderPlotly({
-    req(smap_data())
-    data <- smap_data()
-    year <- input$smap_data_year_slider
-    day <- input$smap_data_day_slider
-    
-    # Filter data for selected year and day
-    filtered_data <- data %>%
-      filter(year == year, day == day)
-    
-    # Create interactive map
-    plot_ly(filtered_data, x = ~lon, y = ~lat, z = ~value,
-            type = "heatmap", colors = "Viridis") %>%
-      layout(title = paste("SMAP Data - Year:", year, "Day:", day))
-  })
-  
-  # GRACE tab
+  # GRACE Interactive Map
   output$grace_interactive_map <- renderPlotly({
     req(grace_data())
     data <- grace_data()
-    year <- input$grace_data_year_slider
-    day <- input$grace_data_day_slider
+    year <- input$grace_year
+    variable <- input$grace_variable
     
-    # Filter data for selected year and day
+    # Filter data for selected year
     filtered_data <- data %>%
-      filter(year == year, day == day)
+      filter(year(date) == year)
+    
+    # Select the appropriate variable
+    if (variable == "TWS") {
+      z_value <- filtered_data$tws
+      title <- "Terrestrial Water Storage"
+    } else if (variable == "Uncertainty") {
+      z_value <- filtered_data$uncertainty
+      title <- "Uncertainty"
+    } else if (variable == "Anomaly") {
+      z_value <- filtered_data$anomaly
+      title <- "Anomaly"
+    }
     
     # Create interactive map
-    plot_ly(filtered_data, x = ~lon, y = ~lat, z = ~value,
-            type = "heatmap", colors = "Viridis") %>%
-      layout(title = paste("GRACE Data - Year:", year, "Day:", day))
-  })
-
-  # Enhanced time series plots with year selection
-  output$vic_time_series_enhanced <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      selected_year <- input$selected_year
-      
-      filtered_data <- data %>%
-        filter(year(date) == selected_year) %>%
-        group_by(date) %>%
-        summarise(
-          OUT_PREC = mean(OUT_PREC, na.rm = TRUE),
-          OUT_EVAP = mean(OUT_EVAP, na.rm = TRUE),
-          OUT_RUNOFF = mean(OUT_RUNOFF, na.rm = TRUE)
-        )
-      
-      if (nrow(filtered_data) > 0) {
-        plot_ly(data = filtered_data) %>%
-          add_trace(x = ~date, y = ~OUT_PREC, name = "Precipitation", type = 'scatter', mode = 'lines') %>%
-          add_trace(x = ~date, y = ~OUT_EVAP, name = "Evapotranspiration", type = 'scatter', mode = 'lines') %>%
-          add_trace(x = ~date, y = ~OUT_RUNOFF, name = "Runoff", type = 'scatter', mode = 'lines') %>%
-          layout(title = paste("VIC Model Time Series -", selected_year),
-                 xaxis = list(title = "Date"),
-                 yaxis = list(title = "Value (mm)"))
-      }
-    }
-  })
-
-  # VIC Data Processing
-  vic_data <- reactive({
-    req(input$year_slider, input$day_slider)
-    year <- input$year_slider
-    day <- input$day_slider
-    
-    # Load the processed VIC data for the selected year
-    vic_file <- paste0("data/vic_processed/vic_", year, ".rds")
-    if (file.exists(vic_file)) {
-      data <- readRDS(vic_file)
-      # Filter for the selected day
-      data <- data[data$day == day, ]
-      return(data)
-    }
-    return(NULL)
-  })
-
-  # Precipitation Analysis
-  output$vic_precip_map <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~lon, y = ~lat, z = ~OUT_PREC, type = "heatmap",
-              colorscale = "Viridis") %>%
-        layout(title = "Precipitation Spatial Distribution",
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }
-  })
-
-  output$vic_precip_ts <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~date, y = ~OUT_PREC, type = 'scatter', mode = 'lines') %>%
-        layout(title = "Precipitation Time Series",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Precipitation (mm)"))
-    }
-  })
-
-  output$vic_rain_snow_ts <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_RAINF, name = "Rainfall", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_SNOWF, name = "Snowfall", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Rainfall vs Snowfall",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  # Evapotranspiration Analysis
-  output$vic_et_map <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~lon, y = ~lat, z = ~OUT_EVAP, type = "heatmap",
-              colorscale = "Viridis") %>%
-        layout(title = "Evapotranspiration Spatial Distribution",
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }
-  })
-
-  output$vic_et_components <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_EVAP_CANOP, name = "Canopy Evaporation", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_TRANSP_VEG, name = "Vegetation Transpiration", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_EVAP_BARE, name = "Bare Soil Evaporation", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Evapotranspiration Components",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  # Runoff Analysis
-  output$vic_runoff_map <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~lon, y = ~lat, z = ~OUT_RUNOFF, type = "heatmap",
-              colorscale = "Viridis") %>%
-        layout(title = "Runoff Spatial Distribution",
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }
-  })
-
-  output$vic_runoff_components <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_RUNOFF, name = "Surface Runoff", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_BASEFLOW, name = "Baseflow", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Runoff Components",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  # Soil Moisture Analysis
-  output$vic_soil_moisture_map <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~lon, y = ~lat, z = ~OUT_SOIL_MOIST, type = "heatmap",
-              colorscale = "Viridis") %>%
-        layout(title = "Soil Moisture Spatial Distribution",
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }
-  })
-
-  output$vic_soil_layers <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_SOIL_MOIST_1, name = "Layer 1", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_SOIL_MOIST_2, name = "Layer 2", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_SOIL_MOIST_3, name = "Layer 3", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Soil Moisture by Layer",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Soil Moisture (mm)"))
-    }
-  })
-
-  # Snow Analysis
-  output$vic_swe_map <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~lon, y = ~lat, z = ~OUT_SWE, type = "heatmap",
-              colorscale = "Viridis") %>%
-        layout(title = "Snow Water Equivalent Spatial Distribution",
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }
-  })
-
-  output$vic_snow_melt <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_SWE, name = "Snow Water Equivalent", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_SNOW_MELT, name = "Snow Melt", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Snow Water Equivalent and Melt",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  # Temperature Analysis
-  output$vic_air_temp <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data, x = ~date, y = ~OUT_AIR_TEMP, type = 'scatter', mode = 'lines') %>%
-        layout(title = "Air Temperature",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Temperature (°C)"))
-    }
-  })
-
-  output$vic_surface_temp <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_SURF_TEMP, name = "Surface", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_BARESOILT, name = "Bare Soil", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_VEGT, name = "Vegetation", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Surface Temperatures",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Temperature (°C)"))
-    }
-  })
-
-  # Combined Analysis
-  output$vic_water_balance <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_PREC, name = "Precipitation", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_EVAP, name = "Evapotranspiration", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_RUNOFF, name = "Runoff", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Water Balance Components",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  output$vic_trends <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      # Calculate trends for each variable
-      trends <- data %>%
-        group_by(year = year(date)) %>%
-        summarise(
-          prec = mean(OUT_PREC),
-          et = mean(OUT_EVAP),
-          runoff = mean(OUT_RUNOFF),
-          swe = mean(OUT_SWE)
-        )
-      
-      plot_ly(data = trends) %>%
-        add_trace(x = ~year, y = ~prec, name = "Precipitation", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~et, name = "Evapotranspiration", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~runoff, name = "Runoff", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~swe, name = "Snow Water Equivalent", type = 'scatter', mode = 'lines+markers') %>%
-        layout(title = "Annual Trends",
-               xaxis = list(title = "Year"),
-               yaxis = list(title = "Annual Mean (mm)"))
-    }
-  })
-
-  output$vic_correlations <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      # Calculate correlations between variables
-      cor_matrix <- cor(data[, c("OUT_PREC", "OUT_EVAP", "OUT_RUNOFF", "OUT_SWE", "OUT_SOIL_MOIST")])
-      
-      plot_ly(z = cor_matrix,
-              x = c("Precipitation", "Evapotranspiration", "Runoff", "SWE", "Soil Moisture"),
-              y = c("Precipitation", "Evapotranspiration", "Runoff", "SWE", "Soil Moisture"),
-              type = "heatmap",
-              colorscale = "RdBu") %>%
-        layout(title = "Variable Correlations",
-               xaxis = list(title = ""),
-               yaxis = list(title = ""))
-    }
-  })
-
-  output$vic_extremes <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      # Calculate extreme events
-      extremes <- data %>%
-        group_by(year = year(date)) %>%
-        summarise(
-          max_prec = max(OUT_PREC),
-          max_et = max(OUT_EVAP),
-          max_runoff = max(OUT_RUNOFF),
-          max_swe = max(OUT_SWE)
-        )
-      
-      plot_ly(data = extremes) %>%
-        add_trace(x = ~year, y = ~max_prec, name = "Max Precipitation", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~max_et, name = "Max Evapotranspiration", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~max_runoff, name = "Max Runoff", type = 'scatter', mode = 'lines+markers') %>%
-        add_trace(x = ~year, y = ~max_swe, name = "Max SWE", type = 'scatter', mode = 'lines+markers') %>%
-        layout(title = "Extreme Events",
-               xaxis = list(title = "Year"),
-               yaxis = list(title = "Maximum Value (mm)"))
-    }
-  })
-
-  # Add precipitation statistics output
-  output$precipitation_stats <- renderTable({
-    data.frame(
-      Statistic = c("Mean", "Maximum", "Minimum", "Standard Deviation"),
-      Value = c("0.78 mm", "9.09 mm", "0 mm", "1.31 mm")
-    )
-  })
-  
-  # Render interactive map
-  output$interactive_map <- renderUI({
-    tags$iframe(
-      src = "images/dashboard/interactive_map.html",
-      width = "100%",
-      height = "600px",
-      frameborder = "0"
-    )
-  })
-  
-  # Render time series plots
-  output$monthly_timeseries <- renderImage({
-    list(
-      src = "images/dashboard/monthly_timeseries.png",
-      width = "100%",
-      height = "400px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$annual_timeseries <- renderImage({
-    list(
-      src = "images/dashboard/annual_timeseries.png",
-      width = "100%",
-      height = "400px"
-    )
-  }, deleteFile = FALSE)
-  
-  # Render correlation plot
-  output$correlation_matrix <- renderImage({
-    list(
-      src = "images/dashboard/correlation_matrix.png",
-      width = "100%",
-      height = "400px"
-    )
-  }, deleteFile = FALSE)
-  
-  # Render trend plots
-  output$trend_precipitation <- renderImage({
-    list(
-      src = "images/dashboard/trend_precipitation.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$trend_swe <- renderImage({
-    list(
-      src = "images/dashboard/trend_swe.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$trend_runoff <- renderImage({
-    list(
-      src = "images/dashboard/trend_runoff.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$trend_baseflow <- renderImage({
-    list(
-      src = "images/dashboard/trend_baseflow.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$trend_evap <- renderImage({
-    list(
-      src = "images/dashboard/trend_evap.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE)
-  
-  output$trend_soil_moisture <- renderImage({
-    list(
-      src = "images/dashboard/trend_soil_moisture.png",
-      width = "100%",
-      height = "300px"
-    )
-  }, deleteFile = FALSE) 
-
-  # VIC Model Tab Server Code
-  output$vic_info_boxes <- renderUI({
-    req(input$vic_variable)
-    metadata <- get_vic_metadata(input$vic_variable)
-    
-    fluidRow(
-      infoBox("Variable", metadata$name, 
-              icon = icon("chart-line"), color = "blue", width = 4),
-      infoBox("Unit", metadata$unit, 
-              icon = icon("ruler"), color = "green", width = 4),
-      infoBox("Description", metadata$description, 
-              icon = icon("info-circle"), color = "light-blue", width = 4)
-    )
-  })
-  
-  output$vic_spatial_map <- renderUI({
-    req(input$vic_variable)
-    
-    # Try to get interactive data
-    tryCatch({
-      nc_file <- vic_data()
-      var_data <- ncvar_get(nc_file, input$vic_variable)
-      time <- ncvar_get(nc_file, "time")
-      dates <- convert_vic_time(time)
-      
-      # Filter data for selected year and day
-      year_idx <- which(year(dates) == input$vic_year_slider)
-      day_idx <- which(yday(dates[year_idx]) == input$vic_day_slider)
-      
-      if (length(day_idx) == 0) stop("No data available")
-      
-      # Get data for the selected day
-      if (length(dim(var_data)) == 3) {
-        data <- var_data[,,day_idx]
-      } else if (length(dim(var_data)) == 4) {
-        data <- var_data[,,1,day_idx]  # Use first layer for soil moisture
-      }
-      
-      # Create spatial map
-      plot_ly(z = data, type = "heatmap", colors = "Viridis") %>%
-        layout(title = paste("Spatial Distribution -", input$vic_variable),
-               xaxis = list(title = "Longitude"),
-               yaxis = list(title = "Latitude"))
-    }, error = function(e) {
-      # If interactive data fails, show static image
-      var_name <- tolower(gsub("OUT_", "", input$vic_variable))
-      img_path <- paste0("images/dashboard/spatial_", var_name, ".png")
-      
-      if (file.exists(img_path)) {
-        tags$img(src = img_path, width = "100%", height = "auto")
-      } else {
-        tags$div(class = "alert alert-warning",
-                "No data available for this variable")
-      }
-    })
-  })
-  
-  output$vic_time_series <- renderUI({
-    req(input$vic_variable)
-    
-    # Try to get interactive data
-    tryCatch({
-      nc_file <- vic_data()
-      var_data <- ncvar_get(nc_file, input$vic_variable)
-      time <- ncvar_get(nc_file, "time")
-      dates <- convert_vic_time(time)
-      
-      # Calculate time series
-      if (length(dim(var_data)) == 3) {
-        ts_data <- apply(var_data, 3, mean, na.rm = TRUE)
-      } else if (length(dim(var_data)) == 4) {
-        ts_data <- apply(var_data[,,1,], 3, mean, na.rm = TRUE)
-      }
-      
-      # Create time series plot
-      plot_ly(x = dates, y = ts_data, type = "scatter", mode = "lines") %>%
-        layout(title = paste("Time Series -", input$vic_variable),
-               xaxis = list(title = "Date"),
-               yaxis = list(title = paste("Value (", get_vic_metadata(input$vic_variable)$unit, ")")))
-    }, error = function(e) {
-      # If interactive data fails, show static image
-      var_name <- tolower(gsub("OUT_", "", input$vic_variable))
-      img_path <- paste0("images/dashboard/timeseries_", var_name, ".png")
-      
-      if (file.exists(img_path)) {
-        tags$img(src = img_path, width = "100%", height = "auto")
-      } else {
-        tags$div(class = "alert alert-warning",
-                "No data available for this variable")
-      }
-    })
-  })
-  
-  output$vic_monthly_stats <- renderUI({
-    req(input$vic_variable)
-    
-    # Try to get interactive data
-    tryCatch({
-      nc_file <- vic_data()
-      var_data <- ncvar_get(nc_file, input$vic_variable)
-      time <- ncvar_get(nc_file, "time")
-      dates <- convert_vic_time(time)
-      
-      # Calculate monthly statistics
-      monthly_stats <- data.frame(
-        date = dates,
-        month = month(dates, label = TRUE),
-        year = year(dates)
-      )
-      
-      if (length(dim(var_data)) == 3) {
-        monthly_stats$value <- apply(var_data, 3, mean, na.rm = TRUE)
-      } else if (length(dim(var_data)) == 4) {
-        monthly_stats$value <- apply(var_data[,,1,], 3, mean, na.rm = TRUE)
-      }
-      
-      # Calculate monthly means
-      monthly_means <- monthly_stats %>%
-        group_by(month) %>%
-        summarise(mean_value = mean(value, na.rm = TRUE))
-      
-      # Create plot
-      plot_ly(monthly_means, x = ~month, y = ~mean_value, type = "bar") %>%
-        layout(title = "Monthly Statistics",
-               xaxis = list(title = "Month"),
-               yaxis = list(title = paste("Mean Value (", get_vic_metadata(input$vic_variable)$unit, ")")))
-    }, error = function(e) {
-      # If interactive data fails, show static image
-      var_name <- tolower(gsub("OUT_", "", input$vic_variable))
-      img_path <- paste0("images/dashboard/monthly_", var_name, ".png")
-      
-      if (file.exists(img_path)) {
-        tags$img(src = img_path, width = "100%", height = "auto")
-      } else {
-        tags$div(class = "alert alert-warning",
-                "No data available for this variable")
-      }
-    })
-  })
-  
-  output$vic_additional_analysis <- renderUI({
-    req(input$vic_variable)
-    
-    # Add additional analysis based on variable type
-    if (input$vic_variable == "OUT_SOIL_MOIST") {
-      fluidRow(
-        column(width = 6,
-               box(title = "Soil Layers", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_soil_layers", height = "300px")
-               )
-        ),
-        column(width = 6,
-               box(title = "Monthly Statistics", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_monthly_stats", height = "300px")
-               )
-        )
-      )
-    } else if (input$vic_variable == "OUT_PREC") {
-      fluidRow(
-        column(width = 6,
-               box(title = "Rain vs Snow", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_rain_snow", height = "300px")
-               )
-        ),
-        column(width = 6,
-               box(title = "Monthly Statistics", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_monthly_stats", height = "300px")
-               )
-        )
-      )
-    } else if (input$vic_variable == "OUT_EVAP") {
-      fluidRow(
-        column(width = 6,
-               box(title = "Components", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_et_components", height = "300px")
-               )
-        ),
-        column(width = 6,
-               box(title = "Monthly Statistics", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_monthly_stats", height = "300px")
-               )
-        )
-      )
-    } else if (input$vic_variable == "OUT_RUNOFF") {
-      fluidRow(
-        column(width = 6,
-               box(title = "Surface vs Baseflow", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_runoff_components", height = "300px")
-               )
-        ),
-        column(width = 6,
-               box(title = "Monthly Statistics", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_monthly_stats", height = "300px")
-               )
-        )
-      )
-    } else {
-      fluidRow(
-        column(width = 12,
-               box(title = "Monthly Statistics", width = NULL, solidHeader = TRUE,
-                   plotlyOutput("vic_monthly_stats", height = "300px")
-               )
-        )
-      )
-    }
-  })
-  
-  # Additional VIC Model Plot Outputs
-  output$vic_soil_layers <- renderPlotly({
-    req(input$vic_variable == "OUT_SOIL_MOIST")
-    
-    nc_file <- vic_data()
-    var_data <- ncvar_get(nc_file, "OUT_SOIL_MOIST")
-    time <- ncvar_get(nc_file, "time")
-    dates <- convert_vic_time(time)
-    
-    # Calculate mean for each layer
-    layer_means <- lapply(1:3, function(layer) {
-      apply(var_data[,,layer,], 3, mean, na.rm = TRUE)
-    })
-    
-    # Create plot
-    plot_ly() %>%
-      add_trace(x = dates, y = layer_means[[1]], name = "Layer 1", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = layer_means[[2]], name = "Layer 2", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = layer_means[[3]], name = "Layer 3", type = "scatter", mode = "lines") %>%
-      layout(title = "Soil Moisture by Layer",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-  
-  output$vic_rain_snow <- renderPlotly({
-    req(input$vic_variable == "OUT_PREC")
-    
-    nc_file <- vic_data()
-    rain_data <- ncvar_get(nc_file, "OUT_RAINF")
-    snow_data <- ncvar_get(nc_file, "OUT_SNOWF")
-    time <- ncvar_get(nc_file, "time")
-    dates <- convert_vic_time(time)
-    
-    # Calculate means
-    rain_mean <- apply(rain_data, 3, mean, na.rm = TRUE)
-    snow_mean <- apply(snow_data, 3, mean, na.rm = TRUE)
-    
-    # Create plot
-    plot_ly() %>%
-      add_trace(x = dates, y = rain_mean, name = "Rainfall", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = snow_mean, name = "Snowfall", type = "scatter", mode = "lines") %>%
-      layout(title = "Rainfall vs Snowfall",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Precipitation (mm/day)"))
-  })
-  
-  output$vic_et_components <- renderPlotly({
-    req(input$vic_variable == "OUT_EVAP")
-    
-    nc_file <- vic_data()
-    bare_evap <- ncvar_get(nc_file, "OUT_EVAP_BARE")
-    canop_evap <- ncvar_get(nc_file, "OUT_EVAP_CANOP")
-    transp_veg <- ncvar_get(nc_file, "OUT_TRANSP_VEG")
-    time <- ncvar_get(nc_file, "time")
-    dates <- convert_vic_time(time)
-    
-    # Calculate means
-    bare_mean <- apply(bare_evap, 3, mean, na.rm = TRUE)
-    canop_mean <- apply(canop_evap, 3, mean, na.rm = TRUE)
-    transp_mean <- apply(transp_veg, 3, mean, na.rm = TRUE)
-    
-    # Create plot
-    plot_ly() %>%
-      add_trace(x = dates, y = bare_mean, name = "Bare Soil", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = canop_mean, name = "Canopy", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = transp_mean, name = "Transpiration", type = "scatter", mode = "lines") %>%
-      layout(title = "Evapotranspiration Components",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "ET (mm/day)"))
-  })
-  
-  output$vic_runoff_components <- renderPlotly({
-    req(input$vic_variable == "OUT_RUNOFF")
-    
-    nc_file <- vic_data()
-    runoff_data <- ncvar_get(nc_file, "OUT_RUNOFF")
-    baseflow_data <- ncvar_get(nc_file, "OUT_BASEFLOW")
-    time <- ncvar_get(nc_file, "time")
-    dates <- convert_vic_time(time)
-    
-    # Calculate means
-    runoff_mean <- apply(runoff_data, 3, mean, na.rm = TRUE)
-    baseflow_mean <- apply(baseflow_data, 3, mean, na.rm = TRUE)
-    
-    # Create plot
-    plot_ly() %>%
-      add_trace(x = dates, y = runoff_mean, name = "Surface Runoff", type = "scatter", mode = "lines") %>%
-      add_trace(x = dates, y = baseflow_mean, name = "Baseflow", type = "scatter", mode = "lines") %>%
-      layout(title = "Runoff Components",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Flow (mm/day)"))
-  })
-  
-  output$vic_monthly_stats <- renderPlotly({
-    req(input$vic_variable)
-    
-    nc_file <- vic_data()
-    var_data <- ncvar_get(nc_file, input$vic_variable)
-    time <- ncvar_get(nc_file, "time")
-    dates <- convert_vic_time(time)
-    
-    # Calculate monthly statistics
-    monthly_stats <- data.frame(
-      date = dates,
-      month = month(dates, label = TRUE),
-      year = year(dates)
-    )
-    
-    if (length(dim(var_data)) == 3) {
-      monthly_stats$value <- apply(var_data, 3, mean, na.rm = TRUE)
-    } else if (length(dim(var_data)) == 4) {
-      monthly_stats$value <- apply(var_data[,,1,], 3, mean, na.rm = TRUE)
-    }
-    
-    # Calculate monthly means
-    monthly_means <- monthly_stats %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
-    
-    # Create plot
-    plot_ly(monthly_means, x = ~month, y = ~mean_value, type = "bar") %>%
-      layout(title = "Monthly Statistics",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = paste("Mean Value (", get_vic_metadata(input$vic_variable)$unit, ")")))
-  })
-
-  # VIC Model Tab Server Code
-  # Load basin boundary data
-  basin_boundary <- reactive({
-    sf::st_read("data/basin_boundary.shp")
-  })
-  
-  # Precipitation Plots
-  output$prec_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    # Create spatial plot with basin boundary
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("blue", "white", "red")),
-                  name = "Precipitation") %>%
-      layout(title = paste("Spatial Distribution - Precipitation",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
+    plot_ly(data = filtered_data, x = ~lon, y = ~lat, z = z_value,
+            type = "heatmap", colors = "RdBu") %>%
+      layout(title = paste("GRACE", title, "-", year),
              xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-  
-  # Evapotranspiration Plots
-  output$evap_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("blue", "white", "red")),
-                  name = "Evapotranspiration") %>%
-      layout(title = paste("Spatial Distribution - Evapotranspiration",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-  
-  # Runoff Plots
-  output$runoff_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("blue", "white", "red")),
-                  name = "Runoff") %>%
-      layout(title = paste("Spatial Distribution - Runoff",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-  
-  # Soil Moisture Plots
-  output$soil_moisture_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("brown", "white", "green")),
-                  name = "Soil Moisture") %>%
-      layout(title = paste("Spatial Distribution - Soil Moisture",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-  
-  # Snow Water Equivalent Plots
-  output$swe_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("white", "lightblue", "blue")),
-                  name = "Snow Water Equivalent") %>%
-      layout(title = paste("Spatial Distribution - Snow Water Equivalent",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-  
-  # Temperature Plots
-  output$temp_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("blue", "white", "red")),
-                  name = "Temperature") %>%
-      layout(title = paste("Spatial Distribution - Temperature",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
+             yaxis = list(title = "Latitude"))
   })
 
-  # Water Balance Tab UI
-  output$water_balance_components <- renderPlotly({
-    data <- vic_data()
-    if (!is.null(data)) {
-      plot_ly(data = data) %>%
-        add_trace(x = ~date, y = ~OUT_PREC, name = "Precipitation", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_EVAP, name = "Evapotranspiration", type = 'scatter', mode = 'lines') %>%
-        add_trace(x = ~date, y = ~OUT_RUNOFF, name = "Runoff", type = 'scatter', mode = 'lines') %>%
-        layout(title = "Water Balance Components",
-               xaxis = list(title = "Date"),
-               yaxis = list(title = "Amount (mm)"))
-    }
-  })
-
-  # SMAP Analysis Outputs
-  output$smap_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("brown", "white", "green")),
-                  name = "SMAP Soil Moisture") %>%
-      layout(title = paste("Spatial Distribution - SMAP",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
-  output$smap_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "SMAP Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
-    
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly SMAP Statistics",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean Soil Moisture (mm)"))
-  })
-
-  output$smap_depth <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines',
-            name = input$smap_depth) %>%
-      layout(title = "Depth Profile Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_land_cover <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Land Cover Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_drought <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Drought Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_vegetation <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Vegetation Response",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$smap_human <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Human Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  # GRACE Analysis Outputs
-  output$grace_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("blue", "white", "red")),
-                  name = "GRACE TWS") %>%
-      layout(title = paste("Spatial Distribution - GRACE",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
+  # GRACE Time Series
   output$grace_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "GRACE Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "TWS Anomaly (mm)"))
-  })
-
-  output$grace_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
+    req(grace_data())
+    data <- grace_data()
+    variable <- input$grace_variable
+    aggregation <- input$grace_aggregation
     
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly GRACE Statistics",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean TWS Anomaly (mm)"))
-  })
-
-  output$grace_components <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Water Storage Components",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Storage (mm)"))
-  })
-
-  output$grace_groundwater <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Groundwater Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Groundwater Storage (mm)"))
-  })
-
-  output$grace_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "TWS Anomaly (mm)"))
-  })
-
-  output$grace_human <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Human Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "TWS Anomaly (mm)"))
-  })
-
-  output$grace_drought <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Drought Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "TWS Anomaly (mm)"))
-  })
-
-  output$grace_management <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Water Management Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "TWS Anomaly (mm)"))
-  })
-
-  # Precipitation Anomalies Outputs
-  output$precip_anomaly_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("red", "white", "blue")),
-                  name = "Precipitation Anomaly") %>%
-      layout(title = paste("Spatial Distribution - Precipitation Anomaly",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
-  output$precip_anomaly_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Precipitation Anomaly Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Anomaly (mm)"))
-  })
-
-  output$precip_anomaly_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
+    # Select the appropriate variable
+    if (variable == "TWS") {
+      y_value <- data$tws
+      title <- "Terrestrial Water Storage"
+    } else if (variable == "Uncertainty") {
+      y_value <- data$uncertainty
+      title <- "Uncertainty"
+    } else if (variable == "Anomaly") {
+      y_value <- data$anomaly
+      title <- "Anomaly"
+    }
     
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly Precipitation Anomalies",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean Anomaly (mm)"))
-  })
-
-  output$precip_extremes <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Extreme Events",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Precipitation (mm)"))
-  })
-
-  output$precip_seasonal <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Seasonal Patterns",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Precipitation (mm)"))
-  })
-
-  output$precip_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Indices",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Index Value"))
-  })
-
-  output$precip_impact <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Impact Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Impact Score"))
-  })
-
-  output$precip_drought <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Drought Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Drought Index"))
-  })
-
-  output$precip_flood <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Flood Risk",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Risk Score"))
-  })
-
-  # SWE Anomalies Outputs
-  output$swe_anomaly_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("red", "white", "blue")),
-                  name = "SWE Anomaly") %>%
-      layout(title = paste("Spatial Distribution - SWE Anomaly",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
-  output$swe_anomaly_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "SWE Anomaly Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Anomaly (mm)"))
-  })
-
-  output$swe_anomaly_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
+    # Aggregate data based on selection
+    if (aggregation == "Monthly") {
+      agg_data <- data %>%
+        group_by(date = floor_date(date, "month")) %>%
+        summarise(mean_val = mean(y_value, na.rm = TRUE))
+      x_title <- "Date"
+    } else if (aggregation == "Seasonal") {
+      agg_data <- data %>%
+        mutate(season = paste(year(date), quarter(date))) %>%
+        group_by(season) %>%
+        summarise(mean_val = mean(y_value, na.rm = TRUE))
+      x_title <- "Season"
+    } else { # Annual
+      agg_data <- data %>%
+        mutate(year = year(date)) %>%
+        group_by(year) %>%
+        summarise(mean_val = mean(y_value, na.rm = TRUE))
+      x_title <- "Year"
+    }
     
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly SWE Anomalies",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean Anomaly (mm)"))
+    # Create time series plot
+    plot_ly(data = agg_data,
+            x = ~if(aggregation == "Monthly") date else if(aggregation == "Seasonal") season else year,
+            y = ~mean_val,
+            type = "scatter",
+            mode = "lines+markers",
+            name = title,
+            line = list(color = "blue"),
+            marker = list(color = "blue")) %>%
+      layout(title = paste("GRACE", title, aggregation, "Time Series"),
+             xaxis = list(title = x_title),
+             yaxis = list(title = paste(title, "(cm)")))
   })
 
-  output$swe_elevation <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Elevation Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_temperature <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Temperature Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_duration <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Snow Cover Duration",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Duration (days)"))
-  })
-
-  output$swe_melt <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Melt Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Melt Rate (mm/day)"))
-  })
-
-  output$swe_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_water <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Water Resource Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Impact Score"))
-  })
-
-  # Snow Water Equivalent Outputs
-  output$swe_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("white", "lightblue", "blue")),
-                  name = "Snow Water Equivalent") %>%
-      layout(title = paste("Spatial Distribution - SWE",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
-  output$swe_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "SWE Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
+  # GRACE Seasonal Analysis
+  output$grace_seasonal <- renderPlotly({
+    req(grace_data())
+    data <- grace_data()
+    variable <- input$grace_variable
     
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly SWE Statistics",
-             xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean SWE (mm)"))
-  })
-
-  output$swe_accumulation <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Snow Accumulation",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_melt <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Snow Melt",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Melt Rate (mm/day)"))
-  })
-
-  output$swe_elevation <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Elevation Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "SWE (mm)"))
-  })
-
-  output$swe_drought <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Drought Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Impact Score"))
-  })
-
-  output$swe_water <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Water Resource Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Impact Score"))
-  })
-
-  # Soil Moisture Outputs
-  output$soil_spatial <- renderPlotly({
-    req(basin_boundary(), vic_data())
-    plot_ly() %>%
-      add_sf(data = basin_boundary(), 
-             color = I("gray"), 
-             opacity = 0.2,
-             name = "Basin Boundary") %>%
-      add_heatmap(data = vic_data(),
-                  x = ~lon, y = ~lat, z = ~value,
-                  colors = colorRamp(c("brown", "white", "green")),
-                  name = "Soil Moisture") %>%
-      layout(title = paste("Spatial Distribution - Soil Moisture",
-                          "\nYear:", input$year_slider,
-                          "Day:", input$day_slider),
-             xaxis = list(title = "Longitude"),
-             yaxis = list(title = "Latitude"),
-             showlegend = TRUE)
-  })
-
-  output$soil_timeseries <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Soil Moisture Time Series",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$soil_monthly <- renderPlotly({
-    req(vic_data())
-    monthly_data <- vic_data() %>%
-      mutate(month = month(date)) %>%
-      group_by(month) %>%
-      summarise(mean_value = mean(value, na.rm = TRUE))
+    # Select the appropriate variable
+    if (variable == "TWS") {
+      y_value <- data$tws
+      title <- "Terrestrial Water Storage"
+    } else if (variable == "Uncertainty") {
+      y_value <- data$uncertainty
+      title <- "Uncertainty"
+    } else if (variable == "Anomaly") {
+      y_value <- data$anomaly
+      title <- "Anomaly"
+    }
     
-    plot_ly(data = monthly_data, x = ~month, y = ~mean_value, type = 'bar') %>%
-      layout(title = "Monthly Soil Moisture Statistics",
+    # Calculate monthly means and standard deviations
+    seasonal_data <- data %>%
+      mutate(month = month(date, label = TRUE)) %>%
+      group_by(month) %>%
+      summarise(mean_val = mean(y_value, na.rm = TRUE),
+                sd_val = sd(y_value, na.rm = TRUE))
+    
+    # Create seasonal plot
+    plot_ly(data = seasonal_data,
+            x = ~month,
+            y = ~mean_val,
+            type = "scatter",
+            mode = "lines+markers",
+            name = "Mean",
+            line = list(color = "blue"),
+            marker = list(color = "blue")) %>%
+      add_ribbons(ymin = ~mean_val - sd_val,
+                  ymax = ~mean_val + sd_val,
+                  line = list(color = "transparent"),
+                  fillcolor = "rgba(0, 0, 255, 0.2)",
+                  name = "Standard Deviation") %>%
+      layout(title = paste("GRACE", title, "Seasonal Patterns"),
              xaxis = list(title = "Month"),
-             yaxis = list(title = "Mean Soil Moisture (mm)"))
+             yaxis = list(title = paste(title, "(cm)")))
   })
 
-  output$soil_depth <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Depth Profile",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
+  # GRACE Trend Analysis
+  output$grace_trend <- renderPlotly({
+    req(grace_data())
+    data <- grace_data()
+    variable <- input$grace_variable
+    
+    # Select the appropriate variable
+    if (variable == "TWS") {
+      y_value <- data$tws
+      title <- "Terrestrial Water Storage"
+    } else if (variable == "Uncertainty") {
+      y_value <- data$uncertainty
+      title <- "Uncertainty"
+    } else if (variable == "Anomaly") {
+      y_value <- data$anomaly
+      title <- "Anomaly"
+    }
+    
+    # Calculate annual means
+    annual_data <- data %>%
+      mutate(year = year(date)) %>%
+      group_by(year) %>%
+      summarise(mean_val = mean(y_value, na.rm = TRUE))
+    
+    # Fit linear trend
+    trend <- lm(mean_val ~ year, data = annual_data)
+    
+    # Create trend plot
+    plot_ly(data = annual_data,
+            x = ~year,
+            y = ~mean_val,
+            type = "scatter",
+            mode = "lines+markers",
+            name = "Annual Mean",
+            line = list(color = "blue"),
+            marker = list(color = "blue")) %>%
+      add_lines(x = ~year,
+                y = fitted(trend),
+                name = "Trend Line",
+                line = list(color = "red", dash = "dash")) %>%
+      layout(title = paste("GRACE", title, "Trend Analysis"),
+             xaxis = list(title = "Year"),
+             yaxis = list(title = paste(title, "(cm)")))
   })
 
-  output$soil_vegetation <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Vegetation Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
+  # VIC Data Analysis
+  vic_data <- reactive({
+    year <- input$vic_year_slider
+    day <- input$vic_day_slider
+    variable <- input$vic_variable
+    
+    # Create a mapping of display names to NetCDF variable names
+    variable_mapping <- list(
+      "Precipitation (mm/day)" = "OUT_PREC",
+      "Rainfall (mm/day)" = "OUT_RAINF",
+      "Evapotranspiration (mm/day)" = "OUT_EVAP",
+      "Surface Runoff (mm/day)" = "OUT_RUNOFF",
+      "Baseflow (mm/day)" = "OUT_BASEFLOW",
+      "Snow Water Equivalent (mm)" = "OUT_SWE",
+      "Soil Moisture (mm)" = "OUT_SOIL_MOIST",
+      "Air Temperature (°C)" = "OUT_AIR_TEMP",
+      "Surface Temperature (°C)" = "OUT_SURF_TEMP",
+      "Soil Temperature (°C)" = "OUT_SOIL_TEMP",
+      "Snow Surface Temperature (°C)" = "OUT_SNOW_SURF_TEMP",
+      "Snow Pack Temperature (°C)" = "OUT_SNOW_PACK_TEMP",
+      "Latent Heat Flux (W/m²)" = "OUT_LATENT"
+    )
+    
+    # Get the actual NetCDF variable name
+    variable_name <- variable_mapping[[variable]]
+    if (is.null(variable_name)) {
+      showNotification("Invalid variable selected", type = "error")
+      return(NULL)
+    }
+    
+    # Read the NetCDF file for the selected year
+    vic_file <- file.path("data/VIC_outputs", paste0("CRB_PRISM_Calibrated.", year, "-01-01.nc"))
+    if (!file.exists(vic_file)) {
+      showNotification("File not found for selected year", type = "error")
+      return(NULL)
+    }
+    
+    tryCatch({
+      nc <- nc_open(vic_file)
+      
+      # Check if the variable exists in the file
+      if (!variable_name %in% names(nc$var)) {
+        showNotification(paste("Variable", variable_name, "not found in the NetCDF file"), type = "error")
+        nc_close(nc)
+        return(NULL)
+      }
+      
+      # Get the variable data
+      var_data <- ncvar_get(nc, variable_name)
+      
+      # Get spatial information
+      lon <- ncvar_get(nc, "lon")
+      lat <- ncvar_get(nc, "lat")
+      
+      # Get time information
+      time <- ncvar_get(nc, "time")
+      dates <- as.Date(time, origin = "0001-01-01")
+      
+      # Check if the selected day is within the data range
+      if (day > dim(var_data)[3]) {
+        showNotification(paste("Selected day", day, "is out of range. Maximum day is", dim(var_data)[3]), 
+                        type = "error")
+        nc_close(nc)
+        return(NULL)
+      }
+      
+      nc_close(nc)
+      
+      # Return the data
+      return(list(
+        data = var_data,
+        lon = lon,
+        lat = lat,
+        dates = dates,
+        day = day,
+        variable = variable,
+        variable_name = variable_name
+      ))
+    }, error = function(e) {
+      showNotification(paste("Error reading NetCDF file:", e$message), type = "error")
+      return(NULL)
+    })
+  })
+  
+  # Spatial map output
+  output$vic_spatial_map <- renderPlotly({
+    data <- vic_data()
+    if (is.null(data)) return(NULL)
+    
+    tryCatch({
+      # Get the data for the selected day
+      day_data <- data$data[,,data$day]
+      
+      # Create a data frame for plotting
+      plot_data <- expand.grid(lon = data$lon, lat = data$lat)
+      plot_data$value <- as.vector(day_data)
+      
+      plot_ly(
+        data = plot_data,
+        x = ~lon,
+        y = ~lat,
+        z = ~value,
+        type = "heatmap",
+        colorscale = "Viridis"
+      ) %>%
+        layout(
+          title = paste("Spatial Distribution -", data$variable),
+          xaxis = list(title = "Longitude"),
+          yaxis = list(title = "Latitude")
+        )
+    }, error = function(e) {
+      showNotification(paste("Error creating spatial plot:", e$message), type = "error")
+      return(NULL)
+    })
+  })
+  
+  # Time series output
+  output$vic_time_series <- renderPlotly({
+    data <- vic_data()
+    if (is.null(data)) return(NULL)
+    
+    tryCatch({
+      # Calculate time series for the selected location
+      center_lon <- which.min(abs(data$lon - mean(data$lon)))
+      center_lat <- which.min(abs(data$lat - mean(data$lat)))
+      
+      # Extract the time series data for the selected location
+      ts_data <- data$data[center_lon, center_lat,]
+      
+      # Create a data frame for plotting
+      plot_data <- data.frame(
+        date = data$dates,
+        value = ts_data
+      )
+      
+      # Remove any NA values
+      plot_data <- na.omit(plot_data)
+      
+      if (nrow(plot_data) == 0) {
+        showNotification("No valid data points for time series", type = "warning")
+        return(NULL)
+      }
+      
+      # Create the plot
+      p <- plot_ly(plot_data, x = ~date, y = ~value, type = "scatter", mode = "lines",
+                  line = list(color = 'rgb(22, 96, 167)')) %>%
+        layout(
+          title = paste("Time Series -", data$variable),
+          xaxis = list(
+            title = "Date",
+            type = "date",
+            tickformat = "%Y-%m-%d"
+          ),
+          yaxis = list(
+            title = data$variable
+          ),
+          showlegend = FALSE
+        )
+      
+      return(p)
+    }, error = function(e) {
+      showNotification(paste("Error creating time series plot:", e$message), type = "error")
+      return(NULL)
+    })
+  })
+  
+  # Statistics outputs
+  output$vic_annual_mean <- renderText({
+    data <- vic_data()
+    if (is.null(data)) return("N/A")
+    tryCatch({
+      mean_val <- mean(data$data[,,data$day], na.rm = TRUE)
+      sprintf("%.2f", mean_val)
+    }, error = function(e) {
+      "N/A"
+    })
+  })
+  
+  output$vic_annual_max <- renderText({
+    data <- vic_data()
+    if (is.null(data)) return("N/A")
+    tryCatch({
+      max_val <- max(data$data[,,data$day], na.rm = TRUE)
+      sprintf("%.2f", max_val)
+    }, error = function(e) {
+      "N/A"
+    })
+  })
+  
+  output$vic_annual_min <- renderText({
+    data <- vic_data()
+    if (is.null(data)) return("N/A")
+    tryCatch({
+      min_val <- min(data$data[,,data$day], na.rm = TRUE)
+      sprintf("%.2f", min_val)
+    }, error = function(e) {
+      "N/A"
+    })
+  })
+  
+  output$vic_annual_trend <- renderText({
+    data <- vic_data()
+    if (is.null(data)) return("N/A")
+    
+    tryCatch({
+      # Calculate trend for the selected location
+      center_lon <- which.min(abs(data$lon - mean(data$lon)))
+      center_lat <- which.min(abs(data$lat - mean(data$lat)))
+      ts_data <- data$data[center_lon, center_lat,]
+      
+      if (length(ts_data) < 2) return("N/A")
+      
+      trend <- lm(ts_data ~ seq_along(ts_data))$coefficients[2]
+      trend_direction <- ifelse(trend > 0, "Increasing", "Decreasing")
+      sprintf("%s (%.2f/day)", trend_direction, abs(trend))
+    }, error = function(e) {
+      "N/A"
+    })
   })
 
-  output$soil_drought <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Drought Analysis",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$soil_climate <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Climate Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$soil_landuse <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Land Use Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Soil Moisture (mm)"))
-  })
-
-  output$soil_water <- renderPlotly({
-    req(vic_data())
-    plot_ly(data = vic_data(), x = ~date, y = ~value, type = 'scatter', mode = 'lines') %>%
-      layout(title = "Water Resource Impact",
-             xaxis = list(title = "Date"),
-             yaxis = list(title = "Impact Score"))
-  })
-
-  # Load pre-processed analysis results
-  analysis_results <- reactive({
-    if (file.exists("data/analysis_cache/analysis_results.rds")) {
-      readRDS("data/analysis_cache/analysis_results.rds")
+  vic_plots <- reactive({
+    if (input$vic_year == "All Years") {
+      create_vic_plots(vic_data())
     } else {
-      NULL
+      create_vic_plots(vic_data(), as.numeric(input$vic_year))
+    }
+  })
+  
+  output$vic_time_series <- renderPlotly({
+    if (!is.null(vic_plots()$time_series)) {
+      vic_plots()$time_series
+    }
+  })
+  
+  output$vic_moisture <- renderPlotly({
+    if (!is.null(vic_plots()$moisture)) {
+      vic_plots()$moisture
+    }
+  })
+  
+  output$vic_spatial <- renderPlotly({
+    if (!is.null(vic_plots()$spatial)) {
+      var_index <- match(input$vic_variable, 
+                        c("Precipitation", "Evapotranspiration", 
+                          "Soil Moisture", "Snow Water Equivalent", "Runoff"))
+      vic_plots()$spatial[[var_index]]
+    }
+  })
+  
+  output$vic_annual <- renderPlotly({
+    if (!is.null(vic_plots()$annual)) {
+      vic_plots()$annual
     }
   })
 
-  # Precipitation Analysis Tab
-  output$precip_anomaly_spatial <- renderPlotly({
-    req(analysis_results())
-    plot_ly(
-      x = seq_along(dim(analysis_results()$precipitation$spatial)[1]),
-      y = seq_along(dim(analysis_results()$precipitation$spatial)[2]),
-      z = analysis_results()$precipitation$spatial,
-      type = "heatmap",
-      colorscale = "Viridis"
-    ) %>%
-      layout(
-        title = "Spatial Distribution of Precipitation",
-        xaxis = list(title = "Longitude"),
-        yaxis = list(title = "Latitude")
+  # Precipitation Tab
+  output$prism_spatial_map <- renderPlotly({
+    prism_data <- load_processed_data("precipitation")
+    if (is.null(prism_data)) return(NULL)
+    
+    # Filter data for selected year and statistic
+    selected_year <- input$prism_year
+    selected_statistic <- input$prism_statistic
+    
+    filtered_data <- prism_data %>%
+      filter(year == selected_year) %>%
+      group_by(month) %>%
+      summarise(
+        mean_value = mean(value, na.rm = TRUE),
+        max_value = max(value, na.rm = TRUE),
+        min_value = min(value, na.rm = TRUE),
+        .groups = 'drop'
+      )
+    
+    # Create color palette based on values
+    pal <- colorNumeric(
+      palette = "viridis",
+      domain = filtered_data$mean_value
+    )
+    
+    # Create popup content
+    popup_content <- paste(
+      "<strong>Month:</strong> ", month.name[filtered_data$month], "<br>",
+      "<strong>Mean Value:</strong> ", round(filtered_data$mean_value, 2), "<br>",
+      "<strong>Max Value:</strong> ", round(filtered_data$max_value, 2), "<br>",
+      "<strong>Min Value:</strong> ", round(filtered_data$min_value, 2)
+    )
+    
+    # Create the map
+    leaflet(filtered_data) %>%
+      addTiles() %>%
+      addCircleMarkers(
+        lng = ~month,
+        lat = ~month,
+        radius = 6,
+        color = ~pal(mean_value),
+        fillOpacity = 0.8,
+        popup = popup_content
+      ) %>%
+      addLegend(
+        "bottomright",
+        pal = pal,
+        values = ~mean_value,
+        title = paste("Mean", selected_statistic),
+        opacity = 1
       )
   })
 
-  output$precip_anomaly_timeseries <- renderPlotly({
-    req(analysis_results())
-    plot_ly(
-      x = seq_along(analysis_results()$precipitation$timeseries),
-      y = analysis_results()$precipitation$timeseries,
-      type = "scatter",
-      mode = "lines"
-    ) %>%
-      layout(
-        title = "Precipitation Time Series",
-        xaxis = list(title = "Time"),
-        yaxis = list(title = "Precipitation (mm)")
+  output$prism_timeseries <- renderPlotly({
+    prism_data <- load_processed_data("precipitation")
+    if (is.null(prism_data)) return(NULL)
+    
+    # Filter data for selected year and statistic
+    selected_year <- input$prism_year
+    selected_statistic <- input$prism_statistic
+    
+    filtered_data <- prism_data %>%
+      filter(year == selected_year) %>%
+      group_by(month) %>%
+      summarise(
+        mean_value = mean(value, na.rm = TRUE),
+        max_value = max(value, na.rm = TRUE),
+        min_value = min(value, na.rm = TRUE),
+        .groups = 'drop'
       )
+    
+    # Create time series plot
+    plot_ly(data = filtered_data, x = ~month, y = ~mean_value, type = 'scatter', mode = 'lines') %>%
+      layout(title = paste("Monthly Precipitation -", selected_year),
+             xaxis = list(title = "Month"),
+             yaxis = list(title = "Precipitation (mm)"))
   })
 
-  # Snow Water Equivalent Tab
-  output$swe_spatial <- renderPlotly({
-    req(analysis_results())
-    plot_ly(
-      x = seq_along(dim(analysis_results()$swe$spatial)[1]),
-      y = seq_along(dim(analysis_results()$swe$spatial)[2]),
-      z = analysis_results()$swe$spatial,
-      type = "heatmap",
-      colorscale = "Viridis"
-    ) %>%
-      layout(
-        title = "Spatial Distribution of SWE",
-        xaxis = list(title = "Longitude"),
-        yaxis = list(title = "Latitude")
+  output$prism_seasonal <- renderPlotly({
+    prism_data <- load_processed_data("precipitation")
+    if (is.null(prism_data)) return(NULL)
+    
+    # Filter data for selected year and statistic
+    selected_year <- input$prism_year
+    selected_statistic <- input$prism_statistic
+    
+    filtered_data <- prism_data %>%
+      filter(year == selected_year) %>%
+      group_by(month) %>%
+      summarise(
+        mean_value = mean(value, na.rm = TRUE),
+        max_value = max(value, na.rm = TRUE),
+        min_value = min(value, na.rm = TRUE),
+        .groups = 'drop'
       )
+    
+    # Create seasonal plot
+    plot_ly(data = filtered_data, x = ~month, y = ~mean_value, type = 'scatter', mode = 'lines+markers',
+            line = list(color = 'rgb(0, 128, 255)', width = 2),
+            marker = list(color = 'rgb(0, 128, 255)', size = 8)) %>%
+      layout(title = paste("Seasonal Precipitation -", selected_year),
+             xaxis = list(title = "Month"),
+             yaxis = list(title = "Precipitation (mm)"))
   })
 
-  output$swe_timeseries <- renderPlotly({
-    req(analysis_results())
-    plot_ly(
-      x = seq_along(analysis_results()$swe$timeseries),
-      y = analysis_results()$swe$timeseries,
-      type = "scatter",
-      mode = "lines"
-    ) %>%
-      layout(
-        title = "SWE Time Series",
-        xaxis = list(title = "Time"),
-        yaxis = list(title = "SWE (mm)")
+  output$prism_trend <- renderPlotly({
+    prism_data <- load_processed_data("precipitation")
+    if (is.null(prism_data)) return(NULL)
+    
+    # Filter data for selected year and statistic
+    selected_year <- input$prism_year
+    selected_statistic <- input$prism_statistic
+    
+    filtered_data <- prism_data %>%
+      filter(year == selected_year) %>%
+      group_by(month) %>%
+      summarise(
+        mean_value = mean(value, na.rm = TRUE),
+        max_value = max(value, na.rm = TRUE),
+        min_value = min(value, na.rm = TRUE),
+        .groups = 'drop'
       )
+    
+    # Create trend line
+    trend <- lm(mean_value ~ month, data = filtered_data)
+    
+    # Create trend plot
+    plot_ly(data = filtered_data, x = ~month, y = ~mean_value, type = 'scatter', mode = 'markers') %>%
+      add_trace(x = ~month, y = fitted(trend), type = 'lines') %>%
+      layout(title = paste("Monthly Precipitation Trends -", selected_year),
+             xaxis = list(title = "Month"),
+             yaxis = list(title = "Precipitation (mm)"))
   })
 }
 
@@ -6389,7 +6211,7 @@ get_available_images <- function(variable) {
 
 # Function to create image display UI
 create_image_display_ui <- function(variable) {
-  fluidRow(
+    fluidRow(
     box(title = paste("Spatial Map -", variable), width = 6,
         imageOutput(paste0(variable, "_spatial"), height = "400px")),
     box(title = paste("Time Series -", variable), width = 6,
@@ -6397,4 +6219,147 @@ create_image_display_ui <- function(variable) {
     box(title = paste("Analysis -", variable), width = 12,
         imageOutput(paste0(variable, "_analysis"), height = "400px"))
   )
+}
+
+# Function to process VIC data
+process_vic_data <- function(year = NULL) {
+  if (!is.null(year)) {
+    # Process specific year
+    vic_file <- file.path("data/VIC_outputs", paste0("CRB_PRISM_Calibrated.", year, "-01-01.nc"))
+    if (!file.exists(vic_file)) {
+      return(NULL)
+    }
+    
+    # Read NetCDF file
+    nc <- nc_open(vic_file)
+    
+    # Extract variables
+    variables <- c("OUT_PREC", "OUT_EVAP", "OUT_SOIL_MOIST", "OUT_SWE", "OUT_RUNOFF")
+    data_list <- lapply(variables, function(var) {
+      values <- ncvar_get(nc, var)
+      return(values)
+    })
+    names(data_list) <- variables
+    
+    # Get time dimension
+    time <- ncvar_get(nc, "time")
+    time_units <- ncatt_get(nc, "time", "units")$value
+    dates <- as.Date(time, origin = "0001-01-01")
+    
+    # Get spatial information
+    lon <- ncvar_get(nc, "lon")
+    lat <- ncvar_get(nc, "lat")
+    
+    nc_close(nc)
+    
+    # Create data frame for time series
+    ts_data <- data.frame(
+      date = dates,
+      precipitation = apply(data_list$OUT_PREC, 3, mean, na.rm = TRUE),
+      evapotranspiration = apply(data_list$OUT_EVAP, 3, mean, na.rm = TRUE),
+      soil_moisture = apply(data_list$OUT_SOIL_MOIST, 3, mean, na.rm = TRUE),
+      snow_water_equivalent = apply(data_list$OUT_SWE, 3, mean, na.rm = TRUE),
+      runoff = apply(data_list$OUT_RUNOFF, 3, mean, na.rm = TRUE)
+    )
+    
+    # Create spatial data
+    spatial_data <- list(
+      lon = lon,
+      lat = lat,
+      variables = lapply(data_list, function(x) apply(x, c(1,2), mean, na.rm = TRUE))
+    )
+    
+    return(list(
+      time_series = ts_data,
+      spatial = spatial_data
+    ))
+  } else {
+    # Process all years
+    all_years <- list.files("data/VIC_outputs", pattern = "CRB_PRISM_Calibrated.*\\.nc$")
+    years <- as.numeric(gsub("CRB_PRISM_Calibrated\\.(\\d{4})-01-01\\.nc", "\\1", all_years))
+    
+    all_data <- lapply(years, function(y) {
+      process_vic_data(y)
+    })
+    names(all_data) <- years
+    
+    return(all_data)
+  }
+}
+
+# Function to create VIC analysis plots
+create_vic_plots <- function(vic_data, year = NULL) {
+  if (is.null(vic_data)) return(NULL)
+  
+  if (!is.null(year)) {
+    # Single year analysis
+    ts_data <- vic_data$time_series
+    
+    # Time series plot
+    ts_plot <- plot_ly() %>%
+      add_trace(data = ts_data, x = ~date, y = ~precipitation, name = "Precipitation", type = "scatter", mode = "lines") %>%
+      add_trace(data = ts_data, x = ~date, y = ~evapotranspiration, name = "Evapotranspiration", type = "scatter", mode = "lines") %>%
+      add_trace(data = ts_data, x = ~date, y = ~runoff, name = "Runoff", type = "scatter", mode = "lines") %>%
+      layout(
+        title = paste("VIC Hydrological Variables -", year),
+        xaxis = list(title = "Date"),
+        yaxis = list(title = "Value (mm)"),
+        legend = list(orientation = "h", y = -0.2)
+      )
+    
+    # Soil moisture and SWE plot
+    moisture_plot <- plot_ly() %>%
+      add_trace(data = ts_data, x = ~date, y = ~soil_moisture, name = "Soil Moisture", type = "scatter", mode = "lines") %>%
+      add_trace(data = ts_data, x = ~date, y = ~snow_water_equivalent, name = "Snow Water Equivalent", type = "scatter", mode = "lines") %>%
+      layout(
+        title = paste("Soil Moisture and Snow Water Equivalent -", year),
+        xaxis = list(title = "Date"),
+        yaxis = list(title = "Value (mm)"),
+        legend = list(orientation = "h", y = -0.2)
+      )
+    
+    # Spatial plots
+    spatial_plots <- lapply(names(vic_data$spatial$variables), function(var) {
+      plot_ly(
+        z = vic_data$spatial$variables[[var]],
+        x = vic_data$spatial$lon,
+        y = vic_data$spatial$lat,
+        type = "heatmap",
+        colorscale = "Viridis"
+      ) %>%
+        layout(
+          title = paste(var, "-", year),
+          xaxis = list(title = "Longitude"),
+          yaxis = list(title = "Latitude")
+        )
+    })
+    
+    return(list(
+      time_series = ts_plot,
+      moisture = moisture_plot,
+      spatial = spatial_plots
+    ))
+  } else {
+    # Multi-year analysis
+    # Create annual summary plots
+    annual_data <- data.frame(
+      year = as.numeric(names(vic_data)),
+      precipitation = sapply(vic_data, function(x) mean(x$time_series$precipitation, na.rm = TRUE)),
+      evapotranspiration = sapply(vic_data, function(x) mean(x$time_series$evapotranspiration, na.rm = TRUE)),
+      runoff = sapply(vic_data, function(x) mean(x$time_series$runoff, na.rm = TRUE))
+    )
+    
+    annual_plot <- plot_ly(annual_data) %>%
+      add_trace(x = ~year, y = ~precipitation, name = "Precipitation", type = "scatter", mode = "lines+markers") %>%
+      add_trace(x = ~year, y = ~evapotranspiration, name = "Evapotranspiration", type = "scatter", mode = "lines+markers") %>%
+      add_trace(x = ~year, y = ~runoff, name = "Runoff", type = "scatter", mode = "lines+markers") %>%
+      layout(
+        title = "Annual Average Hydrological Variables",
+        xaxis = list(title = "Year"),
+        yaxis = list(title = "Value (mm)"),
+        legend = list(orientation = "h", y = -0.2)
+      )
+    
+    return(list(annual = annual_plot))
+  }
 }
