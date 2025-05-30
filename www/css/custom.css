@@ -1,0 +1,114 @@
+/* ASU Theme Colors */
+:root {
+  --asu-maroon: #8C1D40;
+  --asu-gold: #FFC627;
+  --asu-dark-maroon: #5C0025;
+  --asu-light-gold: #FFD700;
+}
+
+/* Main header */
+.skin-blue .main-header .logo {
+  background-color: white;
+  color: #000000;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-left: 4px solid var(--asu-maroon);
+  border-right: 4px solid var(--asu-gold);
+}
+
+/* Header navbar */
+.skin-blue .main-header .navbar {
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-left: 4px solid var(--asu-maroon);
+  border-right: 4px solid var(--asu-gold);
+}
+
+/* Sidebar */
+.skin-blue .main-sidebar {
+  background-color: white;
+  border-right: 4px solid var(--asu-maroon);
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+/* Sidebar menu items */
+.skin-blue .sidebar-menu > li > a {
+  color: #000000;
+  font-weight: 500;
+  border-left: 4px solid var(--asu-maroon);
+  border-right: 4px solid var(--asu-gold);
+}
+
+.skin-blue .sidebar-menu > li.active > a {
+  background-color: var(--asu-gold);
+  color: #000000;
+  border-left: 4px solid var(--asu-maroon);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  font-weight: bold;
+}
+
+/* Box styling */
+.box {
+  background-color: white;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-radius: 4px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease;
+}
+
+.box:hover {
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  transform: translateY(-2px);
+}
+
+/* Info boxes */
+.info-box {
+  background-color: white !important;
+  border: 1px solid #ddd !important;
+  border-radius: 5px !important;
+  transition: all 0.3s ease;
+}
+
+.info-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Plot containers */
+.plot-container {
+  background-color: white;
+  padding: 15px;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+/* Map containers */
+.map-container {
+  background-color: white;
+  border-radius: 4px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.map-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
+}
+
+/* Variable info tiles */
+.variable-info {
+  background-color: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  border-left: 4px solid var(--asu-gold);
+  border-right: 4px solid var(--asu-maroon);
+} 
