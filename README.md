@@ -1,66 +1,75 @@
-# Hydrological Dashboard
+# Colorado River Basin Dashboard
 
-Welcome to the Hydrological Dashboard! This interactive dashboard provides tools for analyzing and visualizing hydrological data.
-
-## Features
-
-- **Data Visualization**: Interactive plots and charts for hydrological data analysis
-- **Data Analysis**: Comprehensive data analysis tools and tables
-- **Interactive Maps**: Geographic visualization of hydrological data
-
-## Getting Started
-
-Use the sidebar menu to navigate between different sections of the dashboard:
-- Dashboard: Overview and welcome information
-- Data Visualization: Interactive plots and charts
-- Data Analysis: Data tables and analysis tools
-- About: Information about this dashboard
+An interactive dashboard for visualizing and analyzing hydrological data in the Colorado River Basin.
 
 ## Data Sources
 
-This dashboard integrates data from various hydrological sources to provide comprehensive analysis capabilities.
+- VIC Model Outputs
+- SMAP Soil Moisture Data
+- GRACE Terrestrial Water Storage Data
+- Basin and HUC10 Shapefiles
 
-## Description
+## Dependencies
 
-This project is a comprehensive dashboard built using R Shiny that provides interactive visualizations and analysis tools for various data sources.
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone [your-repository-url]
+Required R packages:
+```r
+install.packages(c(
+  "shiny",
+  "shinydashboard",
+  "ggplot2",
+  "plotly",
+  "raster",
+  "sf",
+  "dplyr",
+  "tidyr",
+  "lubridate",
+  "DT",
+  "ncdf4",
+  "leaflet",
+  "viridis",
+  "markdown"
+))
 ```
 
-2. Install required R packages:
-```R
-install.packages(c("shiny", "shinydashboard", "plotly", "ggplot2", "dplyr"))
+## Directory Structure
+
+```
+Dashboard/
+├── data/
+│   ├── raw_data/
+│   │   ├── VICOut2.nc
+│   │   ├── SPL4SMGP.007_9km_aid0001.nc
+│   │   ├── GRCTellus.JPL.200204_202401.GLO.RL06.1M.MSCNv03CRI.nc
+│   │   ├── Analysis_Basin_Shapefiles/
+│   │   └── huc10s/
+│   └── processed/
+├── www/
+│   ├── images/
+│   └── css/
+└── R/
 ```
 
-3. Run the application:
-```R
-shiny::runApp("app.R")
+## Running the Dashboard
+
+1. Make sure all required packages are installed
+2. Place your data files in the appropriate directories
+3. Run the dashboard using:
+
+```r
+shiny::runApp()
 ```
 
-## Usage
+## Features
 
-1. Launch the application
-2. Navigate through the different sections using the sidebar menu
-3. Use the interactive controls to customize your view
-4. Export or save your analysis as needed
+- Interactive maps of the Colorado River Basin
+- VIC model output visualization
+- SMAP soil moisture analysis
+- GRACE water storage analysis
+- Precipitation patterns
+- Snow water equivalent analysis
+- Soil moisture analysis
+- Statistical analysis and trends
 
-## Project Structure
+## Contact
 
-- `app.R`: Main application file
-- `ui.R`: User interface components
-- `server.R`: Server-side logic
-- `data_processing/`: Data processing scripts
-- `docs/`: Documentation files
-- `help/`: Help and user guide files
-
-## Contributing
-
-Please read CONTRIBUTING.md for details on our code of conduct and the process for submitting pull requests.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details. 
+For questions or issues, please contact [Your Contact Information] 

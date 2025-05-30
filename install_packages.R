@@ -1,4 +1,11 @@
-required_packages <- c(
+#!/usr/bin/env Rscript
+
+# Create user library if it doesn't exist
+user_lib <- Sys.getenv("R_LIBS_USER")
+if (!dir.exists(user_lib)) dir.create(user_lib, recursive = TRUE)
+
+# List of required packages
+packages <- c(
   "shiny",
   "shinydashboard",
   "ggplot2",
@@ -14,13 +21,17 @@ required_packages <- c(
   "markdown"
 )
 
-# Check which packages are not installed
-missing_packages <- required_packages[!sapply(required_packages, requireNamespace, quietly = TRUE)]
+# Function to install missing packages
+install_if_missing <- function(package) {
+  if (!require(package, character.only = TRUE)) {
+    install.packages(package, repos = "https://cran.rstudio.com/", 
+                    dependencies = TRUE,
+                    lib = Sys.getenv("R_LIBS_USER"))
+  }
+}
 
-# Install missing packages
-if (length(missing_packages) > 0) {
-  install.packages(missing_packages, dependencies = TRUE)
-  cat("Installed missing packages:", paste(missing_packages, collapse = ", "), "\n")
-} else {
-  cat("All required packages are already installed.\n")
-} 
+# Install packages
+sapply(packages, install_if_missing)
+
+# Print session info
+sessionInfo() 

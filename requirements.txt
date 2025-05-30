@@ -1,0 +1,13 @@
+shiny
+shinydashboard
+leaflet
+plotly
+dplyr
+tidyr
+lubridate
+ncdf4
+viridis
+sf
+ggplot2
+DT
+markdown 

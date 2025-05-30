@@ -16,6 +16,9 @@ library(markdown)
 # Add resource path for images
 addResourcePath("images", "/Users/praddy5/Desktop/Dashboard/images")
 
+# Add resource path for logos
+addResourcePath("logos", "www/logos")
+
 # Function to check for processed data
 check_processed_data <- function(data_type, year = NULL) {
   processed_path <- file.path("data", paste0(data_type, "_processed"))
@@ -541,19 +544,19 @@ ui <- dashboardPage(
     titleWidth = 300,
     tags$li(class = "dropdown",
       tags$div(style = "display: inline-block; margin-right: 10px;",
-        tags$img(src = "logos/nasa.png", height = "40px", 
+        tags$img(src = "logos/nasa_logo.jpeg", height = "40px", 
                 style = "padding: 5px; border: 2px solid #FFC627; border-radius: 50%;")
       )
     ),
     tags$li(class = "dropdown",
       tags$div(style = "display: inline-block; margin-right: 10px;",
-        tags$img(src = "logos/asu.jpg", height = "40px", 
+        tags$img(src = "logos/asu_logo.jpg", height = "40px", 
                 style = "padding: 5px; border: 2px solid #FFC627; border-radius: 50%;")
       )
     ),
     tags$li(class = "dropdown",
       tags$div(style = "display: inline-block;",
-        tags$img(src = "logos/cap.jpg", height = "40px", 
+        tags$img(src = "logos/cap_logo.jpeg", height = "40px", 
                 style = "padding: 5px; border: 2px solid #FFC627; border-radius: 50%;")
       )
     )
@@ -570,15 +573,7 @@ ui <- dashboardPage(
       menuItem("Snow Water Equivalent", tabName = "swe", icon = icon("snowflake")),
       menuItem("Soil Moisture", tabName = "soil", icon = icon("seedling")),
       menuItem("SWE Anomalies", tabName = "swe_anomalies", icon = icon("snowflake")),
-      menuItem("Help", tabName = "help", icon = icon("question-circle")),
-      menuItem("Static Outputs", tabName = "static_outputs", icon = icon("image"),
-               menuSubItem("VIC Model", tabName = "static_vic"),
-               menuSubItem("SMAP", tabName = "static_smap"),
-               menuSubItem("GRACE", tabName = "static_grace"),
-               menuSubItem("PRISM", tabName = "static_prism"),
-               menuSubItem("SNOTEL", tabName = "static_snotel"),
-               menuSubItem("Combined Analysis", tabName = "static_combined")
-      )
+      menuItem("Help", tabName = "help", icon = icon("question-circle"))
     )
   ),
   
