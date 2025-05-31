@@ -1371,367 +1371,134 @@ ui <- dashboardPage(
       # VIC Model Tab
       tabItem(tabName = "vic",
               fluidRow(
-                box(title = "VIC Model Analysis", width = 12,
-                  div(class = "variable-info",
-                      h4("VIC Model Output Analysis"),
-                      p("Variable Infiltration Capacity (VIC) model outputs for the Colorado River Basin."),
-                      p("Spatial resolution: 4km, Temporal resolution: Daily")
-                  )
-                ),
-                fluidRow(
-                  column(width = 4,
-                         selectInput("vic_variable", "Select Variable:",
-                                   choices = c(
-                                     "OUT_PREC" = "Precipitation (mm/day)",
-                                     "OUT_RAINF" = "Rainfall (mm/day)",
-                                     "OUT_EVAP" = "Evapotranspiration (mm/day)",
-                                     "OUT_RUNOFF" = "Surface Runoff (mm/day)",
-                                     "OUT_BASEFLOW" = "Baseflow (mm/day)",
-                                     "OUT_SWE" = "Snow Water Equivalent (mm)",
-                                     "OUT_SOIL_MOIST" = "Soil Moisture (mm)",
-                                     "OUT_AIR_TEMP" = "Air Temperature (°C)",
-                                     "OUT_SURF_TEMP" = "Surface Temperature (°C)",
-                                     "OUT_SOIL_TEMP" = "Soil Temperature (°C)",
-                                     "OUT_SNOW_SURF_TEMP" = "Snow Surface Temperature (°C)",
-                                     "OUT_SNOW_PACK_TEMP" = "Snow Pack Temperature (°C)",
-                                     "OUT_LATENT" = "Latent Heat Flux (W/m²)"
-                                   ),
-                                   selected = "OUT_PREC")
-                  ),
-                  column(width = 4,
-                         sliderInput("vic_year_slider", "Select Year", 
-                                   min = 1982, max = 2024, value = 2024, step = 1)
-                  ),
-                  column(width = 4,
-                         sliderInput("vic_day_slider", "Select Day", 
-                                   min = 1, max = 365, value = 1, step = 1)
-                  )
-                ),
-                actionButton("vic_update", "Update Analysis", 
-                            icon = icon("refresh"),
-                            class = "btn-primary")
-              ),
-          
-              fluidRow(
-                box(title = "Spatial Distribution", width = 6,
-                    plotlyOutput("vic_spatial_map", height = "500px")
-                ),
-                box(title = "Time Series", width = 6,
-                    tabsetPanel(
-                      tabPanel("Current Year",
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_PREC'",
-                          img(src = "images/vic_precipitation_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_precipitation_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RAINF'",
-                          img(src = "images/vic_rainfall_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_rainfall_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_EVAP'",
-                          img(src = "images/vic_evapotranspiration_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_evapotranspiration_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RUNOFF'",
-                          img(src = "images/vic_runoff_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_runoff_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
-                          img(src = "images/vic_baseflow_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_baseflow_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SWE'",
-                          img(src = "images/vic_swe_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_swe_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
-                          img(src = "images/vic_soil_moisture_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_moisture_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
-                          img(src = "images/vic_air_temp_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_air_temp_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
-                          img(src = "images/vic_surface_temp_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_surface_temp_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
-                          img(src = "images/vic_soil_temp_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_temp_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
-                          img(src = "images/vic_snow_surface_temp_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_surface_temp_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
-                          img(src = "images/vic_snow_pack_temp_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_pack_temp_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_LATENT'",
-                          img(src = "images/vic_latent_heat_timeseries.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_latent_heat_static.png", width = "100%", height = "auto")
-                          )
-                        )
-                      ),
-                      tabPanel("Historical Trend",
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_PREC'",
-                          img(src = "images/vic_precipitation_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_precipitation_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RAINF'",
-                          img(src = "images/vic_rainfall_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_rainfall_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_EVAP'",
-                          img(src = "images/vic_evapotranspiration_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_evapotranspiration_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RUNOFF'",
-                          img(src = "images/vic_runoff_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_runoff_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
-                          img(src = "images/vic_baseflow_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_baseflow_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SWE'",
-                          img(src = "images/vic_swe_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_swe_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
-                          img(src = "images/vic_soil_moisture_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_moisture_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
-                          img(src = "images/vic_air_temp_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_air_temp_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
-                          img(src = "images/vic_surface_temp_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_surface_temp_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
-                          img(src = "images/vic_soil_temp_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_temp_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
-                          img(src = "images/vic_snow_surface_temp_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_surface_temp_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
-                          img(src = "images/vic_snow_pack_temp_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_pack_temp_trend_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_LATENT'",
-                          img(src = "images/vic_latent_heat_trend.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_latent_heat_trend_static.png", width = "100%", height = "auto")
-                          )
-                        )
-                      ),
-                      tabPanel("Seasonal Pattern",
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_PREC'",
-                          img(src = "images/vic_precipitation_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_precipitation_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RAINF'",
-                          img(src = "images/vic_rainfall_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_rainfall_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_EVAP'",
-                          img(src = "images/vic_evapotranspiration_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_evapotranspiration_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_RUNOFF'",
-                          img(src = "images/vic_runoff_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_runoff_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_BASEFLOW'",
-                          img(src = "images/vic_baseflow_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_baseflow_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SWE'",
-                          img(src = "images/vic_swe_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_swe_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_MOIST'",
-                          img(src = "images/vic_soil_moisture_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_moisture_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_AIR_TEMP'",
-                          img(src = "images/vic_air_temp_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_air_temp_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SURF_TEMP'",
-                          img(src = "images/vic_surface_temp_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_surface_temp_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SOIL_TEMP'",
-                          img(src = "images/vic_soil_temp_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_soil_temp_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_SURF_TEMP'",
-                          img(src = "images/vic_snow_surface_temp_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_surface_temp_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_SNOW_PACK_TEMP'",
-                          img(src = "images/vic_snow_pack_temp_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_snow_pack_temp_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        ),
-                        conditionalPanel(
-                          condition = "input.vic_variable == 'OUT_LATENT'",
-                          img(src = "images/vic_latent_heat_seasonal.png", width = "100%", height = "auto"),
-                          div(style = "margin-top: 20px;",
-                              img(src = "images/vic_latent_heat_seasonal_static.png", width = "100%", height = "auto")
-                          )
-                        )
-                      )
-                    )
+                div(class = "variable-info",
+                    h4("VIC Model Analysis"),
+                    p("Variable Infiltration Capacity (VIC) model outputs for the Colorado River Basin."),
+                    p("Spatial resolution: 4km, Temporal resolution: Daily"),
+                    style = paste0("background-color: white; padding: 15px; border-radius: 4px; ",
+                                 "border-left: 4px solid ", asu_maroon, "; ",
+                                 "border-right: 4px solid ", asu_gold, "; ",
+                                 "box-shadow: 0 2px 4px rgba(0,0,0,0.1);")
                 )
               ),
+              # Info Boxes
               fluidRow(
-                box(title = "Variable Statistics", width = 12,
-                    fluidRow(
-                      column(width = 3,
-                             infoBox("Annual Mean", 
-                                    textOutput("vic_annual_mean"),
-                                    icon = icon("calculator"),
-                                    color = "blue",
-                                    width = NULL)
-                      ),
-                      column(width = 3,
-                             infoBox("Annual Max", 
-                                    textOutput("vic_annual_max"),
-                                    icon = icon("arrow-up"),
-                                    color = "red",
-                                    width = NULL)
-                      ),
-                      column(width = 3,
-                             infoBox("Annual Min", 
-                                    textOutput("vic_annual_min"),
-                                    icon = icon("arrow-down"),
-                                    color = "green",
-                                    width = NULL)
-                      ),
-                      column(width = 3,
-                             infoBox("Annual Trend", 
-                                    textOutput("vic_annual_trend"),
-                                    icon = icon("chart-line"),
-                                    color = "yellow",
-                                    width = NULL)
+                infoBox("Data Coverage", "1982-2024", "42 Years of Data", 
+                        icon = icon("calendar"), color = "maroon", width = 3,
+                        subtitle = "Source: VIC Model - 2024"),
+                infoBox("Spatial Resolution", "4km", "High Resolution Grid", 
+                        icon = icon("ruler"), color = "yellow", width = 3,
+                        subtitle = "Source: VIC Model - 2024"),
+                infoBox("Variables", "23", "Hydro-Climate Variables", 
+                        icon = icon("list"), color = "maroon", width = 3,
+                        subtitle = "Source: VIC Model - 2024"),
+                infoBox("Update Frequency", "Daily", "Temporal Resolution", 
+                        icon = icon("clock"), color = "yellow", width = 3,
+                        subtitle = "Source: VIC Model - 2024")
+              ),
+              # Controls
+              fluidRow(
+                column(width = 3,
+                  div(class = "well",
+                    style = paste0("background-color: white; border-left: 4px solid ", asu_maroon, 
+                                 "; border-right: 4px solid ", asu_gold),
+                    selectInput("vic_var1", "Variable 1:",
+                              choices = c(
+                                "Precipitation" = "OUT_PREC",
+                                "Rainfall" = "OUT_RAINF",
+                                "Snowfall" = "OUT_SNOWF",
+                                "Evaporation" = "OUT_EVAP",
+                                "Runoff" = "OUT_RUNOFF",
+                                "Soil Moisture" = "OUT_SOIL_MOIST",
+                                "Snow Water Equivalent" = "OUT_SWE",
+                                "Temperature" = "OUT_AIR_TEMP"
+                              ),
+                              selected = "OUT_PREC")
+                  )
+                ),
+                column(width = 3,
+                  div(class = "well",
+                    style = paste0("background-color: white; border-left: 4px solid ", asu_maroon,
+                                 "; border-right: 4px solid ", asu_gold),
+                    selectInput("vic_var2", "Variable 2:",
+                              choices = c(
+                                "Precipitation" = "OUT_PREC",
+                                "Rainfall" = "OUT_RAINF",
+                                "Snowfall" = "OUT_SNOWF",
+                                "Evaporation" = "OUT_EVAP",
+                                "Runoff" = "OUT_RUNOFF",
+                                "Soil Moisture" = "OUT_SOIL_MOIST",
+                                "Snow Water Equivalent" = "OUT_SWE",
+                                "Temperature" = "OUT_AIR_TEMP"
+                              ),
+                              selected = "OUT_SWE")
+                  )
+                ),
+                column(width = 3,
+                  div(class = "well",
+                    style = paste0("background-color: white; border-left: 4px solid ", asu_maroon,
+                                 "; border-right: 4px solid ", asu_gold),
+                    sliderInput("vic_year_slider", "Select Year:",
+                              min = 1982, max = 2024,
+                              value = 2024, step = 1,
+                              animate = animationOptions(interval = 2000))
+                  )
+                ),
+                column(width = 3,
+                  div(class = "well",
+                    style = paste0("background-color: white; border-left: 4px solid ", asu_maroon,
+                                 "; border-right: 4px solid ", asu_gold),
+                    sliderInput("vic_time_slider", "Select Day of Year:",
+                              min = 1, max = 365,
+                              value = 1, step = 1,
+                              animate = animationOptions(interval = 100))
+                  )
+                )
+              ),
+              # Interactive Maps
+              fluidRow(
+                column(width = 6,
+                  box(width = NULL,
+                    title = "Variable 1 Distribution",
+                    status = "primary",
+                    solidHeader = TRUE,
+                    leafletOutput("vic_map1", height = 500),
+                    style = paste0("border-left: 4px solid ", asu_maroon,
+                                 "; border-right: 4px solid ", asu_gold)
+                  )
+                ),
+                column(width = 6,
+                  box(width = NULL,
+                    title = "Variable 2 Distribution",
+                    status = "primary",
+                    solidHeader = TRUE,
+                    leafletOutput("vic_map2", height = 500),
+                    style = paste0("border-left: 4px solid ", asu_maroon,
+                                 "; border-right: 4px solid ", asu_gold)
+                  )
+                )
+              ),
+              # Analysis Section
+              fluidRow(
+                column(width = 12,
+                  tabBox(width = NULL,
+                    tabPanel("Correlation Analysis",
+                      plotlyOutput("vic_correlation_plot", height = 400)
+                    ),
+                    tabPanel("Time Series Comparison",
+                      plotlyOutput("vic_timeseries_comparison", height = 400)
+                    ),
+                    tabPanel("Statistical Summary",
+                      div(class = "row",
+                        div(class = "col-md-6",
+                          tableOutput("vic_stats_table1")
+                        ),
+                        div(class = "col-md-6",
+                          tableOutput("vic_stats_table2")
+                        )
                       )
                     )
+                  )
                 )
               )
       ),
@@ -6172,6 +5939,625 @@ server <- function(input, output, session) {
       layout(title = paste("Monthly Precipitation Trends -", selected_year),
              xaxis = list(title = "Month"),
              yaxis = list(title = "Precipitation (mm)"))
+  })
+
+  # VIC Model visualization outputs
+  output$vic_time_series_plot <- renderImage({
+    list(src = "viz/time_series/thermal_regime_timeseries.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Time Series Analysis")
+  }, deleteFile = FALSE)
+
+  output$vic_thermal_plot <- renderImage({
+    list(src = "viz/thermal_regime/OUT_AIR_TEMP.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Thermal Regime Analysis")
+  }, deleteFile = FALSE)
+
+  output$vic_et_plot <- renderImage({
+    list(src = "viz/time_series/evapotranspiration_timeseries.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Evapotranspiration Analysis")
+  }, deleteFile = FALSE)
+
+  output$vic_soil_plot <- renderImage({
+    list(src = "viz/time_series/soil_hydrology_timeseries.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Soil Hydrology Analysis")
+  }, deleteFile = FALSE)
+
+  output$vic_snow_plot <- renderImage({
+    list(src = "viz/time_series/snow_processes_timeseries.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Snow Processes Analysis")
+  }, deleteFile = FALSE)
+
+  output$vic_water_balance_plot <- renderImage({
+    list(src = "viz/time_series/water_balance_timeseries.png",
+         width = "100%",
+         height = "auto",
+         alt = "VIC Water Balance Analysis")
+  }, deleteFile = FALSE)
+
+  # VIC Model outputs
+  observe({
+    req(input$vic_year, input$vic_variable)
+    
+    # Load NetCDF file for selected year
+    nc_file <- file.path("data/raw_data/VIC_outputs", 
+                        paste0("CRB_PRISM_Calibrated.", input$vic_year, "-01-01.nc"))
+    
+    # Load annual TIF file for selected variable
+    tif_file <- file.path("data/raw_data/VIC_outputs", 
+                         paste0(input$vic_variable, "_annual.tif"))
+    
+    if (file.exists(nc_file) && file.exists(tif_file)) {
+      # Update the plots
+      output$vic_spatial_plot <- renderPlot({
+        r <- raster(tif_file)
+        plot(r, main = paste(input$vic_variable, "Distribution"),
+             col = viridis::viridis(100))
+      })
+      
+      # Load NetCDF data
+      nc <- nc_open(nc_file)
+      var_data <- ncvar_get(nc, input$vic_variable)
+      time <- ncvar_get(nc, "time")
+      dates <- as.Date(time, origin = paste0(input$vic_year, "-01-01"))
+      nc_close(nc)
+      
+      # Create time series plot
+      output$vic_timeseries_plot <- renderPlot({
+        ts_data <- data.frame(
+          date = dates,
+          value = apply(var_data, 3, mean, na.rm = TRUE)
+        )
+        ggplot(ts_data, aes(x = date, y = value)) +
+          geom_line() +
+          theme_minimal() +
+          labs(title = paste(input$vic_variable, "Time Series"),
+               x = "Date", y = "Value")
+      })
+      
+      # Calculate statistics
+      mean_val <- mean(var_data, na.rm = TRUE)
+      max_val <- max(var_data, na.rm = TRUE)
+      min_val <- min(var_data, na.rm = TRUE)
+      
+      # Update info boxes
+      output$vic_mean_box <- renderInfoBox({
+        infoBox("Mean", round(mean_val, 2),
+                icon = icon("calculator"), color = "blue")
+      })
+      
+      output$vic_max_box <- renderInfoBox({
+        infoBox("Maximum", round(max_val, 2),
+                icon = icon("arrow-up"), color = "red")
+      })
+      
+      output$vic_min_box <- renderInfoBox({
+        infoBox("Minimum", round(min_val, 2),
+                icon = icon("arrow-down"), color = "green")
+      })
+      
+      output$vic_trend_box <- renderInfoBox({
+        trend <- lm(apply(var_data, 3, mean, na.rm = TRUE) ~ seq_along(dates))$coefficients[2]
+        infoBox("Trend", paste0(ifelse(trend > 0, "+", ""), round(trend, 3), "/day"),
+                icon = icon("chart-line"), color = "yellow")
+      })
+      
+      # Create monthly plot
+      output$vic_monthly_plot <- renderPlot({
+        monthly_data <- data.frame(
+          month = format(dates, "%b"),
+          value = apply(var_data, 3, mean, na.rm = TRUE)
+        ) %>%
+          group_by(month) %>%
+          summarise(
+            mean = mean(value, na.rm = TRUE),
+            sd = sd(value, na.rm = TRUE)
+          )
+        
+        monthly_data$month <- factor(monthly_data$month, 
+                                   levels = month.abb)
+        
+        ggplot(monthly_data, aes(x = month, y = mean)) +
+          geom_bar(stat = "identity", fill = "steelblue") +
+          geom_errorbar(aes(ymin = mean - sd, ymax = mean + sd),
+                       width = 0.2) +
+          theme_minimal() +
+          labs(title = paste(input$vic_variable, "Monthly Pattern"),
+               x = "Month", y = "Value")
+      })
+    }
+  })
+
+  # VIC Model outputs with all 23 variables
+  observe({
+    req(input$vic_var1, input$vic_var2, input$vic_year_slider, input$vic_time_slider)
+    
+    # Define all VIC variables
+    vic_vars <- c(
+      "Precipitation" = "OUT_PREC",
+      "Rainfall" = "OUT_RAINF",
+      "Snowfall" = "OUT_SNOWF",
+      "Total Evaporation" = "OUT_EVAP",
+      "Canopy Evaporation" = "OUT_EVAP_CANOP",
+      "Vegetation Transpiration" = "OUT_TRANSP_VEG",
+      "Bare Soil Evaporation" = "OUT_EVAP_BARE",
+      "Potential ET" = "OUT_PET",
+      "Surface Runoff" = "OUT_RUNOFF",
+      "Baseflow" = "OUT_BASEFLOW",
+      "Soil Moisture" = "OUT_SOIL_MOIST",
+      "Soil Wetness" = "OUT_SOIL_WET",
+      "Soil Temperature" = "OUT_SOIL_TEMP",
+      "Snow Water Equivalent" = "OUT_SWE",
+      "Snow Melt" = "OUT_SNOW_MELT",
+      "Sub-Snow" = "OUT_SUB_SNOW",
+      "Snow Surface Temperature" = "OUT_SNOW_SURF_TEMP",
+      "Snow Pack Temperature" = "OUT_SNOW_PACK_TEMP",
+      "Air Temperature" = "OUT_AIR_TEMP",
+      "Surface Temperature" = "OUT_SURF_TEMP",
+      "Bare Soil Temperature" = "OUT_BARESOILT",
+      "Vegetation Temperature" = "OUT_VEGT",
+      "Surface Storage" = "OUT_SURFSTOR"
+    )
+    
+    # Load NetCDF file for selected year
+    nc_file <- file.path("data/raw_data/VIC_outputs", 
+                        paste0("CRB_PRISM_Calibrated.", input$vic_year_slider, "-01-01.nc"))
+    
+    if (file.exists(nc_file)) {
+      nc <- nc_open(nc_file)
+      
+      # Get spatial data
+      lon <- ncvar_get(nc, "lon")
+      lat <- ncvar_get(nc, "lat")
+      
+      # Get variable data for selected variables
+      var1_data <- ncvar_get(nc, input$vic_var1)[,,input$vic_time_slider]
+      var2_data <- ncvar_get(nc, input$vic_var2)[,,input$vic_time_slider]
+      
+      # Get time dimension
+      time <- ncvar_get(nc, "time")
+      dates <- as.Date(time, origin = paste0(input$vic_year_slider, "-01-01"))
+      
+      # Create interactive maps
+      output$vic_map1 <- renderLeaflet({
+        r <- raster(t(var1_data), 
+                   xmn = min(lon), xmx = max(lon),
+                   ymn = min(lat), ymx = max(lat),
+                   crs = "+proj=longlat +datum=WGS84")
+        
+        pal <- colorNumeric(viridis::viridis(100), values(r), na.color = "transparent")
+        
+        leaflet() %>%
+          addTiles() %>%
+          addRasterImage(r, colors = pal, opacity = 0.8) %>%
+          addLegend("bottomright", pal = pal, values = values(r),
+                   title = vic_vars[input$vic_var1],
+                   layerId = "legend1")
+      })
+      
+      output$vic_map2 <- renderLeaflet({
+        r <- raster(t(var2_data),
+                   xmn = min(lon), xmx = max(lon),
+                   ymn = min(lat), ymx = max(lat),
+                   crs = "+proj=longlat +datum=WGS84")
+        
+        pal <- colorNumeric(viridis::magma(100), values(r), na.color = "transparent")
+        
+        leaflet() %>%
+          addTiles() %>%
+          addRasterImage(r, colors = pal, opacity = 0.8) %>%
+          addLegend("bottomright", pal = pal, values = values(r),
+                   title = vic_vars[input$vic_var2],
+                   layerId = "legend2")
+      })
+      
+      # Create correlation analysis
+      output$vic_correlation_plot <- renderPlotly({
+        # Sample data points for correlation to avoid memory issues
+        set.seed(123)  # For reproducibility
+        sample_size <- min(10000, length(var1_data))
+        sample_idx <- sample(length(var1_data), sample_size)
+        
+        df <- data.frame(
+          var1 = as.vector(var1_data)[sample_idx],
+          var2 = as.vector(var2_data)[sample_idx]
+        )
+        
+        # Remove NA values
+        df <- df[complete.cases(df), ]
+        
+        # Calculate correlation
+        cor_val <- cor(df$var1, df$var2, use = "complete.obs")
+        
+        # Create correlation plot
+        plot_ly(df, x = ~var1, y = ~var2, type = "scatter", mode = "markers",
+                marker = list(
+                  color = asu_maroon,
+                  size = 5,
+                  opacity = 0.6,
+                  line = list(color = "white", width = 0.5)
+                )) %>%
+          add_trace(
+            x = range(df$var1, na.rm = TRUE),
+            y = range(df$var2, na.rm = TRUE),
+            type = "scatter",
+            mode = "lines",
+            line = list(color = asu_gold, dash = "dash", width = 2),
+            name = "1:1 line"
+          ) %>%
+          layout(
+            title = list(
+              text = paste("Correlation Analysis (r =", round(cor_val, 3), ")"),
+              font = list(size = 16)
+            ),
+            xaxis = list(
+              title = names(vic_vars)[vic_vars == input$vic_var1],
+              tickfont = list(size = 12),
+              titlefont = list(size = 14)
+            ),
+            yaxis = list(
+              title = names(vic_vars)[vic_vars == input$vic_var2],
+              tickfont = list(size = 12),
+              titlefont = list(size = 14)
+            ),
+            plot_bgcolor = "white",
+            paper_bgcolor = "white",
+            showlegend = TRUE
+          )
+      })
+      
+      # Create time series comparison with chunked reading
+      output$vic_timeseries_comparison <- renderPlotly({
+        # Read data in chunks to avoid memory issues
+        chunk_size <- 30  # Process 30 days at a time
+        total_days <- length(dates)
+        num_chunks <- ceiling(total_days / chunk_size)
+        
+        # Initialize empty vectors
+        var1_ts <- numeric(total_days)
+        var2_ts <- numeric(total_days)
+        
+        # Process data in chunks
+        for(i in 1:num_chunks) {
+          start_idx <- (i-1) * chunk_size + 1
+          end_idx <- min(i * chunk_size, total_days)
+          
+          # Read chunks for both variables
+          var1_chunk <- ncvar_get(nc, input$vic_var1,
+                                start = c(1, 1, start_idx),
+                                count = c(-1, -1, end_idx - start_idx + 1))
+          var2_chunk <- ncvar_get(nc, input$vic_var2,
+                                start = c(1, 1, start_idx),
+                                count = c(-1, -1, end_idx - start_idx + 1))
+          
+          # Calculate means for chunks
+          var1_ts[start_idx:end_idx] <- apply(var1_chunk, 3, mean, na.rm = TRUE)
+          var2_ts[start_idx:end_idx] <- apply(var2_chunk, 3, mean, na.rm = TRUE)
+        }
+        
+        # Create data frame for plotting
+        df <- data.frame(
+          date = dates,
+          var1 = var1_ts,
+          var2 = var2_ts
+        )
+        
+        # Create monthly averages for smoother plotting
+        df_monthly <- df %>%
+          mutate(month = format(date, "%Y-%m")) %>%
+          group_by(month) %>%
+          summarise(
+            date = as.Date(paste0(month, "-01")),
+            var1 = mean(var1, na.rm = TRUE),
+            var2 = mean(var2, na.rm = TRUE)
+          )
+        
+        # Create plot with monthly averages
+        plot_ly() %>%
+          add_trace(data = df_monthly, x = ~date, y = ~var1, 
+                   name = names(vic_vars)[vic_vars == input$vic_var1],
+                   type = "scatter", mode = "lines+markers", 
+                   line = list(color = asu_maroon, width = 2),
+                   marker = list(color = asu_maroon, size = 5)) %>%
+          add_trace(data = df_monthly, x = ~date, y = ~var2, 
+                   name = names(vic_vars)[vic_vars == input$vic_var2],
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold, width = 2),
+                   marker = list(color = asu_gold, size = 5)) %>%
+          layout(
+            title = list(
+              text = "Monthly Time Series Comparison",
+              font = list(size = 16)
+            ),
+            xaxis = list(
+              title = "Date",
+              tickfont = list(size = 12),
+              titlefont = list(size = 14)
+            ),
+            yaxis = list(
+              title = "Value",
+              tickfont = list(size = 12),
+              titlefont = list(size = 14)
+            ),
+            legend = list(
+              font = list(size = 12)
+            ),
+            margin = list(t = 50),
+            plot_bgcolor = "white",
+            paper_bgcolor = "white",
+            showlegend = TRUE
+          )
+      })
+      
+      # Create statistical summary tables
+      output$vic_stats_table1 <- renderTable({
+        # Get full time series for variable 1
+        var1_full <- ncvar_get(nc, input$vic_var1)
+        
+        data.frame(
+          Statistic = c("Mean", "Median", "Standard Deviation", "Min", "Max", "Spatial Coverage"),
+          Value = c(
+            round(mean(var1_full, na.rm = TRUE), 2),
+            round(median(var1_full, na.rm = TRUE), 2),
+            round(sd(var1_full, na.rm = TRUE), 2),
+            round(min(var1_full, na.rm = TRUE), 2),
+            round(max(var1_full, na.rm = TRUE), 2),
+            paste0(round(100 * sum(!is.na(var1_full)) / length(var1_full), 1), "%")
+          )
+        )
+      })
+      
+      output$vic_stats_table2 <- renderTable({
+        # Get full time series for variable 2
+        var2_full <- ncvar_get(nc, input$vic_var2)
+        
+        data.frame(
+          Statistic = c("Mean", "Median", "Standard Deviation", "Min", "Max", "Spatial Coverage"),
+          Value = c(
+            round(mean(var2_full, na.rm = TRUE), 2),
+            round(median(var2_full, na.rm = TRUE), 2),
+            round(sd(var2_full, na.rm = TRUE), 2),
+            round(min(var2_full, na.rm = TRUE), 2),
+            round(max(var2_full, na.rm = TRUE), 2),
+            paste0(round(100 * sum(!is.na(var2_full)) / length(var2_full), 1), "%")
+          )
+        )
+      })
+      
+      nc_close(nc)
+    }
+  })
+
+  # Add this inside the VIC Model Tab's tabBox after the Statistical Summary tabPanel
+  output$vic_all_variables_ts <- renderUI({
+    fluidRow(
+      column(width = 12,
+        box(width = NULL,
+          title = "Variable Categories",
+          status = "primary",
+          solidHeader = TRUE,
+          tabsetPanel(
+            tabPanel("Water Balance",
+              plotlyOutput("vic_water_balance_ts", height = 500)
+            ),
+            tabPanel("Snow Processes",
+              plotlyOutput("vic_snow_ts", height = 500)
+            ),
+            tabPanel("Soil Processes",
+              plotlyOutput("vic_soil_ts", height = 500)
+            ),
+            tabPanel("Temperature",
+              plotlyOutput("vic_temp_ts", height = 500)
+            ),
+            tabPanel("Evaporation",
+              plotlyOutput("vic_evap_ts", height = 500)
+            )
+          )
+        )
+      )
+    )
+  })
+
+  # Comprehensive time series analysis for all VIC variables
+  observe({
+    req(input$vic_year_slider)
+    
+    # Group variables by category
+    var_groups <- list(
+      water_balance = c("OUT_PREC", "OUT_RUNOFF", "OUT_BASEFLOW"),
+      snow = c("OUT_SWE", "OUT_SNOW_MELT", "OUT_SUB_SNOW"),
+      soil = c("OUT_SOIL_MOIST", "OUT_SOIL_WET", "OUT_SOIL_TEMP"),
+      temperature = c("OUT_AIR_TEMP", "OUT_SURF_TEMP", "OUT_SNOW_SURF_TEMP", "OUT_SNOW_PACK_TEMP", "OUT_BARESOILT", "OUT_VEGT"),
+      evaporation = c("OUT_EVAP", "OUT_EVAP_CANOP", "OUT_TRANSP_VEG", "OUT_EVAP_BARE", "OUT_PET")
+    )
+    
+    # Load NetCDF file
+    nc_file <- file.path("data/raw_data/VIC_outputs", 
+                        paste0("CRB_PRISM_Calibrated.", input$vic_year_slider, "-01-01.nc"))
+    
+    if (file.exists(nc_file)) {
+      nc <- nc_open(nc_file)
+      time <- ncvar_get(nc, "time")
+      dates <- as.Date(time, origin = paste0(input$vic_year_slider, "-01-01"))
+      
+      # Function to process variables in chunks
+      process_vars <- function(vars) {
+        chunk_size <- 30
+        total_days <- length(dates)
+        num_chunks <- ceiling(total_days / chunk_size)
+        
+        # Initialize result matrix
+        result <- matrix(NA, nrow = total_days, ncol = length(vars))
+        colnames(result) <- vars
+        
+        # Process data in chunks
+        for(i in 1:num_chunks) {
+          start_idx <- (i-1) * chunk_size + 1
+          end_idx <- min(i * chunk_size, total_days)
+          
+          for(j in seq_along(vars)) {
+            var_chunk <- try(ncvar_get(nc, vars[j],
+                                     start = c(1, 1, start_idx),
+                                     count = c(-1, -1, end_idx - start_idx + 1)),
+                           silent = TRUE)
+            
+            if(!inherits(var_chunk, "try-error")) {
+              result[start_idx:end_idx, j] <- apply(var_chunk, 3, mean, na.rm = TRUE)
+            }
+          }
+        }
+        
+        # Convert to monthly averages
+        monthly_data <- data.frame(
+          date = dates,
+          result
+        ) %>%
+          mutate(month = format(date, "%Y-%m")) %>%
+          group_by(month) %>%
+          summarise(
+            across(all_of(vars), mean, na.rm = TRUE),
+            date = as.Date(paste0(month, "-01"))
+          )
+        
+        return(monthly_data)
+      }
+      
+      # Create plots for each category
+      # Water Balance
+      output$vic_water_balance_ts <- renderPlotly({
+        df <- process_vars(var_groups$water_balance)
+        plot_ly() %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_PREC"),
+                   name = "Precipitation",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_maroon)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_RUNOFF"),
+                   name = "Runoff",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_BASEFLOW"),
+                   name = "Baseflow",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#5C0025")) %>%
+          layout(
+            title = "Water Balance Components",
+            xaxis = list(title = "Date"),
+            yaxis = list(title = "Value (mm/day)"),
+            showlegend = TRUE
+          )
+      })
+      
+      # Snow Processes
+      output$vic_snow_ts <- renderPlotly({
+        df <- process_vars(var_groups$snow)
+        plot_ly() %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SWE"),
+                   name = "Snow Water Equivalent",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_maroon)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SNOW_MELT"),
+                   name = "Snow Melt",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SUB_SNOW"),
+                   name = "Sub-Snow",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#5C0025")) %>%
+          layout(
+            title = "Snow Processes",
+            xaxis = list(title = "Date"),
+            yaxis = list(title = "Value (mm)"),
+            showlegend = TRUE
+          )
+      })
+      
+      # Soil Processes
+      output$vic_soil_ts <- renderPlotly({
+        df <- process_vars(var_groups$soil)
+        plot_ly() %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SOIL_MOIST"),
+                   name = "Soil Moisture",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_maroon)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SOIL_WET"),
+                   name = "Soil Wetness",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SOIL_TEMP"),
+                   name = "Soil Temperature",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#5C0025")) %>%
+          layout(
+            title = "Soil Processes",
+            xaxis = list(title = "Date"),
+            yaxis = list(title = "Value"),
+            showlegend = TRUE
+          )
+      })
+      
+      # Temperature
+      output$vic_temp_ts <- renderPlotly({
+        df <- process_vars(var_groups$temperature)
+        plot_ly() %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_AIR_TEMP"),
+                   name = "Air Temperature",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_maroon)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SURF_TEMP"),
+                   name = "Surface Temperature",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_SNOW_SURF_TEMP"),
+                   name = "Snow Surface Temperature",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#5C0025")) %>%
+          layout(
+            title = "Temperature Variables",
+            xaxis = list(title = "Date"),
+            yaxis = list(title = "Temperature (°C)"),
+            showlegend = TRUE
+          )
+      })
+      
+      # Evaporation
+      output$vic_evap_ts <- renderPlotly({
+        df <- process_vars(var_groups$evaporation)
+        plot_ly() %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_EVAP"),
+                   name = "Total Evaporation",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_maroon)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_EVAP_CANOP"),
+                   name = "Canopy Evaporation",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = asu_gold)) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_TRANSP_VEG"),
+                   name = "Vegetation Transpiration",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#5C0025")) %>%
+          add_trace(data = df, x = ~date, y = as.formula("~OUT_PET"),
+                   name = "Potential ET",
+                   type = "scatter", mode = "lines+markers",
+                   line = list(color = "#00A3E0")) %>%
+          layout(
+            title = "Evaporation Components",
+            xaxis = list(title = "Date"),
+            yaxis = list(title = "Value (mm/day)"),
+            showlegend = TRUE
+          )
+      })
+      
+      nc_close(nc)
+    }
   })
 }
 
